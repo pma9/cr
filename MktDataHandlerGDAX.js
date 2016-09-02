@@ -20,6 +20,10 @@ MktDataHandlerGDAX.prototype.run = function run(){
   var product = this.product;
   var path = "/products/" + product + "/book?level=3"
   var resturl = resthost + path;
+   ws.on('error',function(data){
+     console.log(data);
+   });
+
   ws.on('open',function open(){
       var subscribe = {
         "type": "subscribe",

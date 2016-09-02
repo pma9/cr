@@ -1,4 +1,7 @@
 var fs = require('fs');
+
+function PrinterGDAX(handler,dir){
+
 function incremental(data,time){
     var output = new String();
     if(data.type == 'received'){
@@ -30,7 +33,6 @@ function print(output,product_id,dir){
     fs.appendFile(filename,JSON.stringify(output).replace(/\"/g,"")+'\r\n');
 }
 
-exports.log = function(handler,dir){
   handler.on('incremental',function(data,product_id,time){
     print(incremental(data,time),product_id,dir);
   });
@@ -43,4 +45,5 @@ exports.log = function(handler,dir){
       print(snapshot(data.asks[i],time,product_id,seq,"sell"),product_id,dir);
     };
   });
-};
+}
+module.exports = PrinterGDAX;

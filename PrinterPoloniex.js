@@ -1,6 +1,6 @@
 var fs = require('fs');
 
-function DataLoggerPoloniex(handler,dir){
+function PrinterPoloniex(handler,dir){
   var seq;
 
   function format(data,time,product,seq){
@@ -37,4 +37,4 @@ function DataLoggerPoloniex(handler,dir){
   });
 
 }
-module.exports = DataLoggerPoloniex;
+module.exports = PrinterPoloniex;
