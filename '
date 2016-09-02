@@ -1,0 +1,73 @@
+var bids = [];
+var asks = [];
+
+function greaterThan(a,b){
+  if(a>b){
+    return true;
+  }
+  return false;
+}
+
+function lessThan(a,b){
+  if(a<b){
+    return true;
+  }
+  return false;
+}
+
+function OrderBookModify(book,comparator,update){
+  var level = {price: update.data.rate, size: update.data.amount};
+  if(book.length == 0){
+    book.push(level);
+  }else{
+    for(var i = 0;i<book.length;i++){
+      if(comparator(level.price,book[i].price)){
+        book.splice(i,0,level);
+        break;
+      }else if(level.price == book[i].price){
+        book[i].size = level.size;
+        break;
+      }
+      book.push(level)
+    }
+  }
+}
+
+function OrderBookRemove(book,update){
+  for(var i = 0;i<book.length;i++){
+    if(update.data.rate == book[i].price){
+      book.splice(i,1);
+      break;
+    }
+  }
+}
+
+function UpdateOrderBook(update){
+  if(update.type == 'orderBookModify'){
+    if(update.data.type == 'bid'){
+      OrderBookModify(bids,greaterThan,update);
+    }else if(update.data.type == 'ask'){
+      OrderBookModify(asks,lessThan,update);
+    }else{
+      console.log('error');
+    }
+  }else if(update.type == 'orderBookRemove'){
+    if(update.data.type == 'bid'){
+      OrderBookRemove(bids,update);
+    }else if(update.data.type == 'ask'){
+      OrderBokRemove(asks,update);
+    }else{
+      console.log('error');
+    }
+  }
+  //here emit top of book
+  if(bids.length > 0 && asks.length > 0){
+    console.log(bids[0].price,asks[0].price);
+  }
+}
+
+function OrderBookMgrPoloniex(reader){
+  this.reader = reader;
+  this.reader.on('update', UpdateOrderBook(data));
+}
+module.exports = OrderBookMgrPoloniex;

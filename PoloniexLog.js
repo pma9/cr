@@ -1,19 +1,17 @@
-var Logger = require('./DataLogger');
+var PropertiesReader = require('properties-reader');
+var properties = new PropertiesReader('logSettings.ini');
+var outputDir = properties.get('data.dir');
+var product = process.argv[2];
+var Handler = require('./MktDataHandlerPoloniex');
+var Printer = require('./PrinterPoloniex');
+var handler = new Handler(product);
+var printer = new Printer(handler,outputDir);
 
-var SubLogger = function(){
-  Logger.apply(this);
-  this.PropertiesReader = require('properties-reader');
-  this.properties = this.PropertiesReader('logSettings.ini');
-  this.outputDir = this.properties.get('data.dir');
-  this.product = process.argv[2];
-  this.Handler = require('./MktDataHandlerPoloniex');
-  this.Printer = require('./PrinterPoloniex');
-  this.handler = new this.Handler(this.product);
-  this.printer = new this.Printer(this.handler,this.outputDir);
-} 
+handler.on('disconnect',function(){
+  handler = new Handler(product);
+  printer = new Printer(handler,outputDir);
+  handler.run();
+});
 
-SubLogger.prototype = Logger.prototype;
-SubLogger.prototype.constructor = SubLogger;
+handler.run();
 
-logger = new SubLogger();
-logger.run();
