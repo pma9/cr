@@ -1,9 +1,9 @@
 var PropertiesReader = require('properties-reader');
-var properties = new PropertiesReader('logSettings.ini');
+var properties = new PropertiesReader('../Settings/logSettings.ini');
 var outputDir = properties.get('data.dir');
 var product = process.argv[2];
-var Handler = require('./MktDataHandlerPoloniex');
-var Printer = require('./PrinterPoloniex');
+var Handler = require('../DataHandling/MktDataHandlerPoloniex');
+var Printer = require('../DataHandling/PrinterPoloniex');
 var handler = new Handler(product);
 var printer = new Printer(handler,outputDir);
 

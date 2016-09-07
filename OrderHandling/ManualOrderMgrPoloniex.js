@@ -1,6 +1,6 @@
 var inherits = require('util').inherits;
 var EventEmitter = require('events').EventEmitter;
-var OrderHandler = require('./OrderHandlerPoloniex');
+var OrderHandler = require('../OrderHandling/OrderHandlerPoloniex');
 
 function ManualOrderManagerPoloniex(){
   EventEmitter.call(this);
