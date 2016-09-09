@@ -62,7 +62,7 @@ this.dataHandler.on('incremental',function(update){
       if(open[i].order.orderID == update.maker_order_id){
         var level = open[i].level;
         filled.push(update);
-        level.updateOrder(update);
+        level.updatePosition(update);
         break;
       }
     }
