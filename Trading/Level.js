@@ -17,7 +17,6 @@ Level.prototype.updateTOB = function updateTOB(tob){
   var TOB = Number(tob);
   var upSens = Number(this.tob + this.sens);
   var downSens = Number(this.tob - this.sens);
-//  console.log(TOB,upSens,downSens);
   this.rate = (Number(tob) + this.distance).toFixed(8);
   switch(this.state){
     case "monitor":
@@ -28,10 +27,10 @@ Level.prototype.updateTOB = function updateTOB(tob){
       break;
     case "on":
       if(this.entryOrder.rate == null){
-        this.entryOrder =this.orderMgr.requestNewOrder(this.action,this.rate,this.amount);
+        this.orderMgr.requestNewOrder(this.action,this.rate,this.amount);
       }else if(TOB > upSens || TOB < downSens){
         this.tob = TOB;
-        this.entryOrder = this.orderMgr.modifyOrder(this.entryOrder.orderNumber,this.rate,this.amount);
+        this.orderMgr.modifyOrder(this.entryOrder.orderNumber,this.rate,this.amount);
         //don't go back to original amount after partial
         //update take profit orders
       }
@@ -63,6 +62,21 @@ Level.prototype.changeState = function changeState(state){
   }
 }
 
-//fill notify
+this.orderMgr.on('pending',function(order){
+//how to differentiate entry and exit?
+});
+
+this.orderMgr.on('open',function(order){
+
+}):
+
+this.orderMgr.on('fill',function(order){
+
+}):
+
+this.orderMgr.on('done',function(order){
+
+}):
+
 
 module.exports = Level;

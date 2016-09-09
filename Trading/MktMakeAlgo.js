@@ -25,14 +25,20 @@ function MktMakeAlgo(properties,orderBookMgr, orderMgr){
     for(var i = 0;i<asks.length;i++){
       asks[i].updateTOB(data);
     }
-  printWorkingOrders();
   });
 
   orderBookMgr.on('bidUpdate',function(data){
     for(var i = 0;i<bids.length;i++){
       bids[i].updateTOB(data);
     }
-  printWorkingOrders();
+  });
+
+  orderBookMgr.on('seq gap',function(){
+     //cancel entry orders
+  });
+
+  orderBookMgr.on('disconnect',function(){
+    //cancel entry orders
   });
 
 }
