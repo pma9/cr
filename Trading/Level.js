@@ -6,11 +6,17 @@ function Level(action,distance,amount,takeProfit,stopOut,orderMgr,state,sens){
   this.takeProfit = takeProfit;
   this.stopOut = stopOut;
   this.orderMgr = orderMgr;
-  this.entryOrder = {};
+  this.entryOrder = {type:'done'};
   this.exitOrder = {};
   this.state = state;
   this.sens = Number(sens);
   this.tob = Number(0);
+  this.position = 0;
+  this.remaining_size = this.amount;
+}
+
+function updateExitOrders(){
+
 }
 
 Level.prototype.updateTOB = function updateTOB(tob){
@@ -23,23 +29,23 @@ Level.prototype.updateTOB = function updateTOB(tob){
       //do nothing
       break;
     case "closing":
-      //update exit orders
+      updateExitOrders();
       break;
     case "on":
-      if(this.entryOrder.rate == null){
-        this.orderMgr.requestNewOrder(this.action,this.rate,this.amount);
-      }else if(TOB > upSens || TOB < downSens){
+      if(this.entryOrder.type == 'done' && this.position == 0){
+        this.orderMgr.requestNewOrder(this,this.action,this.rate,this.remaining_size);
+        this.entryorder.type = 'pending';
+      }else if(this.entryOrder.type == 'open' && TOB > upSens || TOB < downSens){
         this.tob = TOB;
-        this.orderMgr.modifyOrder(this.entryOrder.orderNumber,this.rate,this.amount);
-        //don't go back to original amount after partial
+        this.orderMgr.modifyOrder(this.entryOrder.orderNumber,this.rate,this.remaining_size);
         //update take profit orders
+      }else if(this.position >0 || this.position <0){
+        updateExitOrders();
       }
-      //update entry orders
       break;
     default:
       console.log("unrecognized state");
   }
-
 }
 
 Level.prototype.changeState = function changeState(state){
@@ -62,21 +68,25 @@ Level.prototype.changeState = function changeState(state){
   }
 }
 
-this.orderMgr.on('pending',function(order){
-//how to differentiate entry and exit?
-});
+Level.prototype.updateOrder(order){
 
-this.orderMgr.on('open',function(order){
+  if(order.action == this.action){
+    if(order.type == 'match'){
+      this.position = this.position + order.size;
+      this.remainingSize = this.amount - position;
+    }else{
+      if(order.type == 'open'){
+        var initialFill = this.remainingSize - order.remaining_size;
+        this.position = this.position + initialFill;
+        this.remaining_size = this.amount - position;
+      }
+      this.entryOrder = order;
+    }
+  }else{
+    //update exit orders(s)?
+  }
 
-}):
-
-this.orderMgr.on('fill',function(order){
-
-}):
-
-this.orderMgr.on('done',function(order){
-
-}):
+}
 
 
 module.exports = Level;

@@ -16,6 +16,7 @@ function OrderMgrGDAXProd(currencyPair,orderHandler,dataHandler){
 inherits(OrderMgrGDAXProd,EventEmitter);
 
 OrderMgrGDAXPRod.prototype.requestNewOrder = function requestNewOrder(level,action,rate,amount){
+//can entire level be passed to this function?
   var oid = uuid.v1();
   var msg = {currencyPair:this.currencyPair,action:action,rate:rate,amount:amount,client_oid:oid}
   this.orderHandler.request(msg);
@@ -31,8 +32,8 @@ OrderMgrGDAXPRod.prototype.cancelOrder = function cancelOrder(orderNumber){
 
 OrderMgrGDAXPRod.prototype.modifyOrder = function modifyOrder(orderNumber,rate,amount){
   //this is not supported on GDAX?
-  //cancel
-  //new
+  //could simply route to cancel, then algo will resubmit new
+  this.cancelOrder(orderNumber);
 }
 
 this.dataHandler.on('incremental',function(update){
@@ -40,39 +41,38 @@ this.dataHandler.on('incremental',function(update){
   if(update.type == 'received'){
     for(var i = 0;i<unacked.length;i++){
       if(unacked[i].oid == update.client_oid){
-        var order = {level:unacked[i].level,orderID:update.order_id};
-        pending.push(order);
+        var level = unacked[i].level;
+        pending.push(level:level,order:update);
         unacked.splice(i,1);
-        self.emit('pending',order);
+        level.updateOrder(update);
         break;
       }
     }
   }else if(update.type == 'open'){
     for(var i = 0;i<pending.length;i++){
-      if(pending[i].orderID == update.order_id){
-        var order = {level:pending[i].level,orderID:pending[i].orderID,amount:update.remaining_size};
-        open.push(order);
-        //possible portion filled immediately, level must resolve
+      if(pending[i].order.orderID == update.order_id){
+        var level = pending[i].level;
+        open.push({level:level,order:update);
         pending.splice(i,1);
-        self.emit('open',order);
+        level.updateOrder(update);
         break;
     }
   }else if(update.type == 'match'){
     for(var i = 0;i<open.length;i++){
-      if(open[i].orderID == update.maker_order_id){
-        var order = {level:open[i].level,orderID:open[i].orderID,amount:update.size,price:update.price,time:update.time};
-        filled.push(order);
-        self.emit('fill',order);
+      if(open[i].order.orderID == update.maker_order_id){
+        var level = open[i].level;
+        filled.push(update);
+        level.updateOrder(update);
         break;
       }
     }
   }else if(update.type == 'done'){
     for(var i = 0;i<open.length;i++){
-      if(open[i].orderID == update.order_id){
-        var order = {level:open[i].level,orderID:open[i].orderID};
-        done.push(order);
+      if(open[i].order.orderID == update.order_id){
+        var level = open[i].level;
+        done.push(level:level,order:update);
         open.splice(i,1);
-        self.emit('done',order);
+        level.updateOrder(update);
         break;
       }
     }
