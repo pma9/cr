@@ -23,6 +23,7 @@ function Level(product,action,distance,amount,takeProfit,stopOut,orderMgr,state,
   this.sweepEnd = 0;
   this.sweepTime = 0;
   this.trailingStopMax = 0;
+  var uuid = require('uuid');
 }
 
 function updateSweepEnd(last){
@@ -67,6 +68,7 @@ function newEntryOrder(tob){
   this.entryOrder.price = (tob + this.distance).toFixed(8);
   this.entryOrder.size = this.remainder;
   this.entryOrder.state = 'pending';
+  this.entryOrder.clientID = uuid.v1();
   this.tob = tob;
   this.refTob = tob;
   this.orderMgr.requestNewOrder(this,this.entryOrder);
@@ -75,6 +77,7 @@ function newEntryOrder(tob){
 function newExitOrder(){
   this.exitOrder.price = calcTakeProfitPrice();
   this.exitOrder.state = 'pending';
+  this.exitOrder.clientID = uuid.v1();
   this.orderMgr.requestNewOrder(this,this.exitOrder);
 }
 

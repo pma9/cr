@@ -15,10 +15,13 @@ function OrderMgrGDAXProd(currencyPair,orderHandler,dataHandler){
 }
 inherits(OrderMgrGDAXProd,EventEmitter);
 
-OrderMgrGDAXPRod.prototype.requestNewOrder = function requestNewOrder(level,action,rate,amount){
+OrderMgrGDAXPRod.prototype.requestNewOrder = function requestNewOrder(level,order){
+//this class should just be a register for order IDs
+//is there speed improvement with a single register? simpler to have each Level track own orderID
+//most of these requests can be passed directly to handler
+//3 handler functions: new order, cancels, status
+
 //can entire level be passed to this function?
-  var oid = uuid.v1();
-  var msg = {currencyPair:this.currencyPair,action:action,rate:rate,amount:amount,client_oid:oid}
   this.orderHandler.request(msg);
   unacked.push({level:level,oid:oid});
 }
