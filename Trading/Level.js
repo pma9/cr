@@ -1,5 +1,4 @@
 var Order = require('../Trading/Order');
-
 function Level(product,action,distance,amount,takeProfit,stopOut,orderHandler,state,sens,stopOutTime,dataHandler){
   this.side = action;
   this.exitSide = 'sell';
@@ -28,7 +27,7 @@ function Level(product,action,distance,amount,takeProfit,stopOut,orderHandler,st
   this.dataHandler = dataHandler;
   var self = this;
 
-function updateSweepEnd(last){
+this.updateSweepEnd = function(last){
   if(this.side == 'buy'){
     if(last < this.sweepEnd){
       this.sweepEnd = last;
@@ -40,13 +39,13 @@ function updateSweepEnd(last){
   }
 }
 
-function calcTakeProfitPrice(){
+this.calcTakeProfitPrice = function(){
   var sweepSize = sweepStart - sweepEnd;
   var offSet = sweepSize * this.takeProfit;
   return this.sweepEnd + offSet;
 }
 
-function stopOutCheck(tob){
+this.stopOutCheck = function(tob){
   if(Date.now() > this.sweepTime + this.stopOutTime){
     if(this.trailingStopMax == 0){
        this.trailingStopMax = tob;
@@ -70,26 +69,26 @@ this.newEntryOrder = function(tob){
   this.entryOrder.price = (tob + this.distance).toFixed(8);
   this.entryOrder.size = this.remainder;
   this.entryOrder.state = 'pending';
-  this.entryOrder.clientID = uuid.v1();
+  this.entryOrder.clientID = uuid.v4();
   this.tob = tob;
   this.refTob = tob;
   this.orderHandler.newOrder(this.entryOrder);
 }
 
-function newExitOrder(){
+this.newExitOrder = function(){
   this.exitOrder.price = calcTakeProfitPrice();
   this.exitOrder.state = 'pending';
   this.exitOrder.clientID = uuid.v1();
   this.orderHandler.newOrder(this.exitOrder);
 }
 
-function updateExitOrder(tob){
-  if(stopOutCheck(tob)){
+this.updateExitOrder = function(tob){
+  if(this.stopOutCheck(tob)){
     this.exitOrder.price = tob;
     this.exitOrder.state = 'pending';
     this.orderHandler.modifyOrder(this.exitOrder);
   }else{
-    var price = calcTakeProfitPrice();
+    var price = this.calcTakeProfitPrice();
     if(price > this.exitOrder.price && price < this.exitOrder.price){
       this.exitOrder.price = price;
       this.exitOrder.state = 'pending';
@@ -98,12 +97,13 @@ function updateExitOrder(tob){
   }
 }
 
-function updateEntryOrder(tob){
+this.updateEntryOrder = function(tob){
   var upSens = Number(this.tob + this.sens);
-  var downSens = Number(this.tob + this.sens);
+  var downSens = Number(this.tob - this.sens);
   this.entryOrder.size = this.remainder;
 
   if(tob > upSens || tob < downSens){
+console.log(tob,upSens,downSens);
     this.tob = tob;
     this.entryOrder.price = (tob + this.distance).toFixed(8);
     this.entryOrder.state = 'pending';
@@ -111,8 +111,9 @@ function updateEntryOrder(tob){
   }
 }
 
-this.assignClientID = function(update){
+this.assignOrderID = function(update){
   if(update.client_oid == this.entryOrder.clientID){
+    console.log(update,'oid'); //testing
      this.entryOrder.orderID = update.order_id;
   }else if(update.client_oid == this.exitOrder.clientID){
     this.exitOrder.orderID = update.order_id;
@@ -120,10 +121,12 @@ this.assignClientID = function(update){
 }
 
 this.dataHandler.on('incremental',function(update){
+
   if(update.type == 'received'){
-    self.assignClientID(update);
+    self.assignOrderID(update);
   }else if(update.type == 'match'){
     if(update.maker_order_id == self.entryOrder.orderID || update.taker_order_id == self.entryOrder.orderID){
+console.log(update,'match'); //testing
       if(self.position == 0){
         self.sweepStart = self.refTob; //start recorded after initial fill
         self.sweepEnd = update.price;
@@ -136,21 +139,21 @@ this.dataHandler.on('incremental',function(update){
       self.remainder = self.amount - self.position;
     }
   }else{
-    if(update.order_id = self.entryOrder.orderID){
+    if(self.entryOrder.orderID != 0){
+      if(update.order_id == self.entryOrder.orderID){
+      console.log(update);  //testing
       self.refTob = self.tob; //at this point you know order is cancelled or open
       self.entryOrder.state = update.type;
       self.entryOrder.size = update.remaining_size;
       //if partial or complete fill, will get subsequent match msg
-    }else if(update.order_id = self.exitOrder.orderID){
+      }
+    }else if(self.exitOrder.orderID !=0){ 
+     if(update.order_id = self.exitOrder.orderID){
       self.exitOrder.state = update.type;
       self.exitOrder.size = update.remaining_size;
+     }
     }
   }
-});
-
-this.orderHandler.on('new_ack',function(data){
-  self.assignClientID(data);
-  console.log(self.entryOrder);
 });
 
 this.orderHandler.on('cancel_ack',function(update){
@@ -165,7 +168,7 @@ this.orderHandler.on('cancel_ack',function(update){
 
 Level.prototype.updateLastTrade = function updateLastTrade(last){
   if(this.position !=0){
-    updateSweepSize(last);
+    this.updateSweepSize(last);
   }
 }
 
@@ -190,9 +193,9 @@ Level.prototype.updateTOB = function updateTOB(tob){
     case "closing":
       if(this.position != 0){
         if(this.exitOrder.state = 'done'){
-          newExitOrder();
+          this.newExitOrder();
         }else if(this.exitOrder.state = 'open'){
-          updateExitOrder(TOB);
+          this.updateExitOrder(TOB);
         }
       }
       if(this.entryOrder.state = 'open'){
@@ -202,18 +205,18 @@ Level.prototype.updateTOB = function updateTOB(tob){
     case "on":
       if(this.position != 0){
          if(this.entryOrder.state == 'open'){
-           updateEntryOrder(TOB);
+           this.updateEntryOrder(TOB);
          }
          if(this.exitOrder.state == 'done'){
-           newExitOrder();
+           this.newExitOrder();
          }else if(this.exitOrder.state == 'open'){
-           updateExitOrder();
+           this.updateExitOrder();
          }
       }else{
         if(this.entryOrder.state == 'done'){
           this.newEntryOrder(TOB);
         }else if(this.entryOrder.state == 'open'){
-          updateEntryOrder(TOB);
+          this.updateEntryOrder(TOB);
         }
       }
       break;

@@ -10,11 +10,13 @@ inherits(OrderHandlerGDAXHist,EventEmitter);
 OrderHandlerGDAXHist.prototype.newOrder = function newOrder(msg){
   var self = this;
   msg.order_id = uuid.v1();
-  self.emit('new_ack',msg); 
+  self.emit('new_ack',msg);
+  console.log(msg);
 } 
 OrderHandlerGDAXHist.prototype.cancelOrder = function cancelOrder(msg){
   var self = this;
-  self.emit('cancel_ack',msg.orderID);    
+  self.emit('cancel_ack',msg.orderID);
+  console.log(msg);
 }
 OrderHandlerGDAXHist.prototype.modifyOrder = function modifyOrder(msg){
   this.cancelOrder(msg);

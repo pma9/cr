@@ -16,27 +16,24 @@ inherits(OrderHandlerGDAXProd,EventEmitter);
 
 OrderHandlerGDAXProd.prototype.newOrder = function newOrder(msg){
   var self = this;
-  var action = msg.side;
-  var currencyPair = msg.currencyPair;
-
-  switch(action){
-    case "buy":
+  switch(msg.side){
+    case 'buy':
       var buyParams = {
-        'price': msg.rate,
-        'size': msg.amount,
-        'product_id': currencyPair,
-        'client_oid': msg.oid
+        'price': msg.price,
+        'size': msg.size,
+        'product_id': msg.product,
+        'client_oid': msg.clientID
       }
       gdax.buy(buyParams,function(err,res,data){
         self.emit('new_ack',data);
       });
       break;
-    case "sell":
+    case 'sell':
       var sellParams = {
-        'price': msg.rate,
-        'size': msg.amount,
-        'product_id': currencyPair,
-        'client_oid': msg.oid
+        'price': msg.price,
+        'size': msg.size,
+        'product_id': msg.product,
+        'client_oid': msg.clientID
       }
       gdax.sell(sellParams,function(err,res,data){
         self.emit('new_ack',data);
@@ -53,13 +50,19 @@ OrderHandlerGDAXProd.prototype.cancelOrder = function cancelOrder(msg){
 OrderHandlerGDAXProd.prototype.modifyOrder = function modifyOrder(msg){
   this.cancelOrder(msg);
 }
+OrderHandlerGDAXProd.prototype.cancelAll = function cancelAll(msg){
+  var self = this;
+  var params = {product_id:msg.product};
+  gdax.cancelAllOrders(params,function(err,res,data){
+    self.emit('ack',data);
+  });
+}
 
 OrderHandlerGDAXProd.prototype.query = function query(msg){
   var self = this;
-  var action = msg.side;
   var currencyPair = msg.currencyPair;
 
-  switch(action){
+  switch(msg.action){
     case "fills":
       gdax.getFills(function(err,res,data){
         self.emit('fill_ack',data);
@@ -75,13 +78,9 @@ OrderHandlerGDAXProd.prototype.query = function query(msg){
         self.emit('ack',data);
       });
       break;
-    case "cancelAll":
-      gdax.cancelAllOrders(function(err,res,data){
-        self.emit('ack',data);
-      });
-      break;
     default:
       console.log('command not recognized');  
+  }
 }
 
 
