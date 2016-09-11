@@ -14,9 +14,9 @@ function OrderHandlerGDAXProd(){
 }
 inherits(OrderHandlerGDAXProd,EventEmitter);
 
-OrderHandlerGDAXProd.prototype.request = function request(msg){
+OrderHandlerGDAXProd.prototype.newOrder = function newOrder(msg){
   var self = this;
-  var action = msg.action;
+  var action = msg.side;
   var currencyPair = msg.currencyPair;
 
   switch(action){
@@ -28,7 +28,7 @@ OrderHandlerGDAXProd.prototype.request = function request(msg){
         'client_oid': msg.oid
       }
       gdax.buy(buyParams,function(err,res,data){
-        self.emit('new_ack',data,oid);
+        self.emit('new_ack',data);
       });
       break;
     case "sell":
@@ -39,14 +39,27 @@ OrderHandlerGDAXProd.prototype.request = function request(msg){
         'client_oid': msg.oid
       }
       gdax.sell(sellParams,function(err,res,data){
-        self.emit('new_ack',data,oid);
+        self.emit('new_ack',data);
       });
       break;
-    case "cancel":
+  }
+} 
+OrderHandlerGDAXProd.prototype.cancelOrder = function cancelOrder(msg){
+  var self = this;
       gdax.cancelOrder(msg.orderNumber,function(err,res,data){
         self.emit('cancel_ack',data);
       });
-      break;
+}
+OrderHandlerGDAXProd.prototype.modifyOrder = function modifyOrder(msg){
+  this.cancelOrder(msg);
+}
+
+OrderHandlerGDAXProd.prototype.query = function query(msg){
+  var self = this;
+  var action = msg.side;
+  var currencyPair = msg.currencyPair;
+
+  switch(action){
     case "fills":
       gdax.getFills(function(err,res,data){
         self.emit('fill_ack',data);
@@ -68,8 +81,8 @@ OrderHandlerGDAXProd.prototype.request = function request(msg){
       });
       break;
     default:
-      console.log('command not recognized');
-  }
+      console.log('command not recognized');  
 }
+
 
 module.exports = OrderHandlerGDAXProd;

@@ -1,5 +1,6 @@
+var Order = require('../Trading/Order');
 
-function Level(product,action,distance,amount,takeProfit,stopOut,orderMgr,state,sens,stopOutTime){
+function Level(product,action,distance,amount,takeProfit,stopOut,orderHandler,state,sens,stopOutTime,dataHandler){
   this.side = action;
   this.exitSide = 'sell';
   if(this.side == 'sell'){
@@ -9,9 +10,9 @@ function Level(product,action,distance,amount,takeProfit,stopOut,orderMgr,state,
   this.amount = Number(amount);
   this.takeProfit = Number(takeProfit);
   this.stopOut = Number(stopOut);
-  this.orderMgr = orderMgr;
-  this.entryOrder = new Order(product,side,'done',0,0,0,0);
-  this.exitOrder = new Order(product,exitSide,'done',0,0,0,0);
+  this.orderHandler = orderHandler;
+  this.entryOrder = new Order(product,this.side,'done',0,0,0,0);
+  this.exitOrder = new Order(product,this.exitSide,'done',0,0,0,0);
   this.levelState = state;
   this.sens = Number(sens);
   this.stopOutTime = Number(stopOutTime);
@@ -24,7 +25,8 @@ function Level(product,action,distance,amount,takeProfit,stopOut,orderMgr,state,
   this.sweepTime = 0;
   this.trailingStopMax = 0;
   var uuid = require('uuid');
-}
+  this.dataHandler = dataHandler;
+  var self = this;
 
 function updateSweepEnd(last){
   if(this.side == 'buy'){
@@ -64,34 +66,34 @@ function stopOutCheck(tob){
   }
 }
 
-function newEntryOrder(tob){
+this.newEntryOrder = function(tob){
   this.entryOrder.price = (tob + this.distance).toFixed(8);
   this.entryOrder.size = this.remainder;
   this.entryOrder.state = 'pending';
   this.entryOrder.clientID = uuid.v1();
   this.tob = tob;
   this.refTob = tob;
-  this.orderMgr.requestNewOrder(this,this.entryOrder);
+  this.orderHandler.newOrder(this.entryOrder);
 }
 
 function newExitOrder(){
   this.exitOrder.price = calcTakeProfitPrice();
   this.exitOrder.state = 'pending';
   this.exitOrder.clientID = uuid.v1();
-  this.orderMgr.requestNewOrder(this,this.exitOrder);
+  this.orderHandler.newOrder(this.exitOrder);
 }
 
 function updateExitOrder(tob){
   if(stopOutCheck(tob)){
     this.exitOrder.price = tob;
     this.exitOrder.state = 'pending';
-    this.orderMgr.modifyOrder(this,this.exitOrder);
+    this.orderHandler.modifyOrder(this.exitOrder);
   }else{
     var price = calcTakeProfitPrice();
     if(price > this.exitOrder.price && price < this.exitOrder.price){
       this.exitOrder.price = price;
       this.exitOrder.state = 'pending';
-      this.orderMgr.modifyOrder(this,this.exitOrder);
+      this.orderHandler.modifyOrder(this.exitOrder);
     }
   }
 }
@@ -105,63 +107,113 @@ function updateEntryOrder(tob){
     this.tob = tob;
     this.entryOrder.price = (tob + this.distance).toFixed(8);
     this.entryOrder.state = 'pending';
-    this.orderMgr.modifyOrder(this,this.entryOrder);
+    this.orderHandler.modifyOrder(this.entryOrder);
   }
 }
 
-Level.prototype.updateLastTrade(last){
-  if(position !=0){
+this.assignClientID = function(update){
+  if(update.client_oid == this.entryOrder.clientID){
+     this.entryOrder.orderID = update.order_id;
+  }else if(update.client_oid == this.exitOrder.clientID){
+    this.exitOrder.orderID = update.order_id;
+  }
+}
+
+this.dataHandler.on('incremental',function(update){
+  if(update.type == 'received'){
+    self.assignClientID(update);
+  }else if(update.type == 'match'){
+    if(update.maker_order_id == self.entryOrder.orderID || update.taker_order_id == self.entryOrder.orderID){
+      if(self.position == 0){
+        self.sweepStart = self.refTob; //start recorded after initial fill
+        self.sweepEnd = update.price;
+        self.sweepTime = Date.now();
+      }
+      self.position = self.position + update.size;
+      self.remainder = self.amount - self.position;
+    }else if(update.maker_order_id == self.exitOrder.orderID || update.taker_order_id == self.exitOrder.orderID){
+      self.position = self.position - update.size;
+      self.remainder = self.amount - self.position;
+    }
+  }else{
+    if(update.order_id = self.entryOrder.orderID){
+      self.refTob = self.tob; //at this point you know order is cancelled or open
+      self.entryOrder.state = update.type;
+      self.entryOrder.size = update.remaining_size;
+      //if partial or complete fill, will get subsequent match msg
+    }else if(update.order_id = self.exitOrder.orderID){
+      self.exitOrder.state = update.type;
+      self.exitOrder.size = update.remaining_size;
+    }
+  }
+});
+
+this.orderHandler.on('new_ack',function(data){
+  self.assignClientID(data);
+  console.log(self.entryOrder);
+});
+
+this.orderHandler.on('cancel_ack',function(update){
+  if(update == self.entryOrder.orderID){
+     self.entryOrder.state = 'done';
+  }else if(update == self.exitOrder.orderID){
+    self.exitOrder.state = 'done';
+  }
+});
+
+}
+
+Level.prototype.updateLastTrade = function updateLastTrade(last){
+  if(this.position !=0){
     updateSweepSize(last);
   }
 }
 
-//updates order price and quantity
 Level.prototype.updateTOB = function updateTOB(tob){
-  if(position == 0){
+
+  if(this.position == 0){
     this.sweepStart = 0;
     this.sweepEnd = 0;
     this.trailingStopMax = 0;
     this.sweepTime = 0;
   }
   var TOB = Number(tob);
-  switch(this.state){
+  switch(this.levelState){
     case "monitor":
       if(this.entryOrder.state = 'open'){
-        this.orderMgr.cancelOrder(this.entryOrder.orderID);
+        this.orderHandler.cancelOrder(this.entryOrder.orderID);
       }
       if(this.exitOrder.state = 'open'){
-        this.orderMgr.cancelOrder(this.exitOrder.orderID);
+        this.orderHandler.cancelOrder(this.exitOrder.orderID);
       }
       break;
     case "closing":
       if(this.position != 0){
         if(this.exitOrder.state = 'done'){
-          //request new exit order
+          newExitOrder();
         }else if(this.exitOrder.state = 'open'){
-          //update exit order
-          //do nothing on pending
+          updateExitOrder(TOB);
         }
       }
       if(this.entryOrder.state = 'open'){
-        this.orderMgr.cancelOrder(this.entryOrder.orderID);
+        this.orderHandler.cancelOrder(this.entryOrder.orderID);
       }
       break;
     case "on":
       if(this.position != 0){
          if(this.entryOrder.state == 'open'){
-           //continue updating
+           updateEntryOrder(TOB);
          }
          if(this.exitOrder.state == 'done'){
-           //request new exit order
+           newExitOrder();
          }else if(this.exitOrder.state == 'open'){
-           //continue updating
+           updateExitOrder();
          }
       }else{
         if(this.entryOrder.state == 'done'){
-          newEntryOrder(TOB);
+          this.newEntryOrder(TOB);
         }else if(this.entryOrder.state == 'open'){
-          //update entry order
-          //do nothing on pending
+          updateEntryOrder(TOB);
         }
       }
       break;
@@ -174,48 +226,14 @@ Level.prototype.changeState = function changeState(state){
   this.state = state;
 }
 
-Level.prototype.updateOrder(update){
-  if(update.type == 'received'){
-    if(update.client_oid == this.entryOrder.clientID){
-      this.entryOrder.orderID = update.order_id;
-    }else if(update.client_oid == this.exitOrder.clientID){
-      this.exitOrder.orderID = update.order_id;
-    }
-  }else{
-    if(update.order_id = this.entryOrder.orderID){
-      this.refTob = this.tob; //at this point you know order is cancelled or open
-      this.entryOrder.state = update.type;
-      this.entryOrder.size = update.remaining_size;
-      //if partial or complete fill, will get subsequent match msg
-    }else if(update.order_id = this.exitOrder.orderID){
-      this.exitOrder.state = update.type;
-      this.exitOrder.size = update.remaining_size;
-    }
-  }
-}
-
-Level.prototype.updatePosition(update){
-  if(update.maker_order_id == this.entryOrder.orderID || update.taker_order_id == this.entryOrder.orderID){
-    if(this.position == 0){
-      this.sweepStart = this.refTob; //start recorded after initial fill
-      this.sweepEnd = update.price;
-      this.sweepTime = Date.now();
-    }
-    this.position = this.position + update.size;
-    this.remainder = this.amount - this.position;
-  }else if(update.maker_order_id == this.exitOrder.orderID || update.taker_order_id == this.exitOrder.orderID){
-    this.position = this.position - update.size;
-    this.remainder = this.amount - this.position;
-  }
-}
 
 //in case of disconnection, or manual override
-Level.prototype.cancelAll(){
+Level.prototype.cancelAll = function cancelAll(){
   if(this.entryOrder.state == 'open'){
-    this.orderMgr.cancelOrder(this.entryOrder.orderID);
+    this.orderHandler.cancelOrder(this.entryOrder.orderID);
   }
   if(this.exitOrder.state == 'open'){
-    this.orderMgr.cancelOrder(this.exitOrder.orderID);
+    this.orderHandler.cancelOrder(this.exitOrder.orderID);
   }
 }
 module.exports = Level;

@@ -78,7 +78,9 @@ function OrderBookMgrGDAX(reader){
   var self = this;
   //every hist update considered incremental
   reader.on('incremental', function(update){
-    if(update.side == 'buy'){
+    if(update.type == 'match'){
+      self.emit('lastUpdate',update.price);
+    }else if(update.side == 'buy'){
       if(update.type == 'open'){
         OrderBookAdd(bids,greaterThan,update);
       }else if(update.type == 'done'){

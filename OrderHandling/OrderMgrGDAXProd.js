@@ -19,7 +19,7 @@ OrderMgrGDAXPRod.prototype.requestNewOrder = function requestNewOrder(level,orde
 //this class should just be a register for order IDs
 //is there speed improvement with a single register? simpler to have each Level track own orderID
 //most of these requests can be passed directly to handler
-//3 handler functions: new order, cancels, status
+//3 handler functions: new order, cancels, query
 
 //can entire level be passed to this function?
   this.orderHandler.request(msg);
