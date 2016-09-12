@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+  <head>
+    <title>MktMake Client</title>
+    <style>
+      table, th, td{
+        color:white;
+        background-color: black;
+        border: 1px solid gray;
+        border-collapse: collapse;
+      }
+    </style>
+    <script src='/socket.io/socket.io.js'></script>
+    <script>
+      var socket = io();
+      socket.on('product',function(data){
+        var product = document.getElementById('product');
+        product.innerHTML = data;
+      });
+      socket.on('exchange',function(data){
+        var exchange = document.getElementById('exchange');
+        exchange.innerHTML = data;
+      });
+      socket.on('bidUpdate',function(data){
+        update('bidPrice',data);
+//        updateTime('bidTime');
+      });
+      socket.on('askUpdate',function(data){
+        update('askPrice',data);
+//        updateTime('askTime');
+      });
+      
+      function update(id,data){
+         var element = document.getElementById(id);
+         var num = Number(data).toFixed(2);
+         element.innerHTML = num;
+      }
+      function updateTime(id){
+         var element = document.getElementById(id);
+         var time = new Date().toISOString();
+         element.innerHTML = time;
+      }
+
+    </script>
+  </head>
+  <body bgcolor = black>
+    <table style="font-size:12pt;">
+      <tr>
+        <th id='product'></th>
+        <th id='exchange'></th>
+      </tr>
+      <tr>
+        <th>Bid</th>
+        <th>State</th>
+        <th>Price</th>
+        <th>Size</th>
+<!--        <th>Time</th>  -->
+        <th>Ask</th>
+        <th>State</th>
+        <th>Price</th>
+        <th>Size</th>
+<!--        <th>Time</th>  -->
+      </tr>
+      <tr>
+        <td>0</td>
+        <td>market</td>
+        <td style="color:green;"; id='bidPrice'></td>
+        <td>1</td>
+<!--        <td id='bidTime'></td>  -->
+        <td>0</td>
+        <td>market</td>
+        <td style="color:red;"; id='askPrice'></td>
+        <td>1</td>
+<!--        <td id='askTime'></td> -->
+      </tr>
+    </table>
+  </body>
+</html>
