@@ -40,7 +40,12 @@
          var time = new Date().toISOString();
          element.innerHTML = time;
       }
-
+      function addOrder(tableID,data){
+        table = document.getElementById(tableID);
+        var row = table.insertRow(table.rows.length);
+        var cell = row.insertCell(0);
+        celll.innerHTML = 'new';
+      }
     </script>
   </head>
   <body bgcolor = black>
