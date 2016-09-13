@@ -1,4 +1,7 @@
 var Order = require('../Trading/Order');
+var inherits = require('util').inherits;
+var EventEmitter = require('events').EventEmitter;
+
 function Level(product,action,distance,amount,takeProfit,stopOut,orderHandler,state,sens,stopOutTime,dataHandler){
   this.side = action;
   this.exitSide = 'sell';
@@ -26,6 +29,7 @@ function Level(product,action,distance,amount,takeProfit,stopOut,orderHandler,st
   var uuid = require('uuid');
   this.dataHandler = dataHandler;
   var self = this;
+  EventEmitter.call(this);
 
 this.updateSweepEnd = function(last){
   if(this.side == 'buy'){
@@ -111,19 +115,15 @@ console.log(tob,upSens,downSens);
   }
 }
 
-this.assignOrderID = function(update){
-  if(update.client_oid == this.entryOrder.clientID){
-    console.log(update,'oid'); //testing
-     this.entryOrder.orderID = update.order_id;
-  }else if(update.client_oid == this.exitOrder.clientID){
-    this.exitOrder.orderID = update.order_id;
-  }
-}
-
 this.dataHandler.on('incremental',function(update){
-
   if(update.type == 'received'){
-    self.assignOrderID(update);
+    if(update.client_oid == self.entryOrder.clientID){
+       console.log(update,'oid'); //testing
+       self.entryOrder.orderID = update.order_id;
+       self.emit('orderUpdate', self.entryOrder);
+    }else if(update.client_oid == self.exitOrder.clientID){
+      self.exitOrder.orderID = update.order_id;
+    }
   }else if(update.type == 'match'){
     if(update.maker_order_id == self.entryOrder.orderID || update.taker_order_id == self.entryOrder.orderID){
 console.log(update,'match'); //testing
@@ -141,7 +141,8 @@ console.log(update,'match'); //testing
   }else{
     if(self.entryOrder.orderID != 0){
       if(update.order_id == self.entryOrder.orderID){
-      console.log(update);  //testing
+      console.log(update);  //testingi
+      self.emit('orderUpdate',self.entryOrder);
       self.refTob = self.tob; //at this point you know order is cancelled or open
       self.entryOrder.state = update.type;
       self.entryOrder.size = update.remaining_size;
@@ -165,6 +166,7 @@ this.orderHandler.on('cancel_ack',function(update){
 });
 
 }
+inherits(Level,EventEmitter);
 
 Level.prototype.updateLastTrade = function updateLastTrade(last){
   if(this.position !=0){

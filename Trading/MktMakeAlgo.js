@@ -2,7 +2,7 @@ var Level = require('../Trading/Level');
 var bids= [];
 var asks= [];
 
-function MktMakeAlgo(properties,orderBookMgr,orderHandler,dataHandler,product){
+function MktMakeAlgo(properties,orderBookMgr,orderHandler,dataHandler,product,server){
   //assign properties
   var distance = properties.get('distance').split(",");
   var amount = properties.get('amount').split(",");
@@ -11,7 +11,6 @@ function MktMakeAlgo(properties,orderBookMgr,orderHandler,dataHandler,product){
   var stopOutTime = properties.get('stopOutTime').split(",");
   var state = properties.get('state');
   var sens = properties.get('sens').split(",");
-
   //create levels
   for(var i = 0;i<distance.length;i++){
     bids.push(new Level(product,"buy",-distance[i],Number(amount[i]),Number(takeProfit[i]),Number(stopOut[i]),orderHandler,state,Number(sens[i]),Number(stopOutTime[i]),dataHandler));
@@ -26,6 +25,8 @@ function MktMakeAlgo(properties,orderBookMgr,orderHandler,dataHandler,product){
 //      asks[i].updateTOB(data);
 //    }
 //  });
+
+  server.register(bids,asks);
 
   orderBookMgr.on('bidUpdate',function(data){
     for(var i = 0;i<bids.length;i++){

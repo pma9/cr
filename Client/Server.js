@@ -4,6 +4,8 @@ var io = require('socket.io')(server);
 var port = 3000;
 var product = "";
 var exchange = "";
+var bids = [];
+var asks = [];
 
 function Server(Port,orderBookMgr,Product,Exchange){
   port = Port;
@@ -21,6 +23,12 @@ function Server(Port,orderBookMgr,Product,Exchange){
   orderBookMgr.on('lastUpdate',function(data){
     io.emit('lastUpdate',data);
   });
+
+}
+
+Server.prototype.register = function(Bids,Asks){
+  bids = Bids;
+  asks = Asks;
 }
 
 app.get('/',function(req,res){
@@ -32,6 +40,18 @@ io.on('connection',function(socket){
 
   io.emit('product',product);
   io.emit('exchange',exchange);
+  var bidOrders = [];
+  for(var i = 0;i<bids.length;i++){
+    bidOrders.push(bids[i].entryOrder);
+  }
+
+  io.emit('orderInit',bidOrders);
+
+  for(var i = 0;i<bids.length;i++){
+    bids[i].on('orderUpdate',function(data){
+      io.emit('bidOrderUpdate',i,data);
+    });
+  }
 
   socket.on('disconnect',function(){
     console.log('client disconnected');

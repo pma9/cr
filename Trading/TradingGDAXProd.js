@@ -8,6 +8,9 @@ var orderBookMgr = new OrderBookMgr(dataHandler);
 var MktMakeAlgo = require('../Trading/MktMakeAlgo');
 var OrderHandler = require('../OrderHandling/OrderHandlerGDAXProd');
 var orderHandler = new OrderHandler();
-var algo = new MktMakeAlgo(properties,orderBookMgr,orderHandler,dataHandler,product);
+var Server = require('../Client/Server');
+var server = new Server(3000,orderBookMgr,product,"GDAX");
+
+var algo = new MktMakeAlgo(properties,orderBookMgr,orderHandler,dataHandler,product,server);
 
 dataHandler.run();
