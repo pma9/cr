@@ -30,7 +30,7 @@ function Level(product,action,distance,amount,takeProfit,stopOut,orderHandler,st
   this.dataHandler = dataHandler;
   var self = this;
   EventEmitter.call(this);
-
+console.log(this.sens);
 this.updateSweepEnd = function(last){
   if(this.side == 'buy'){
     if(last < this.sweepEnd){
@@ -74,6 +74,7 @@ this.newEntryOrder = function(tob){
   this.entryOrder.size = this.remainder;
   this.entryOrder.state = 'pending';
   this.entryOrder.clientID = uuid.v4();
+  console.log(this.entryOrder.clientID,this.entryOrder.size,new Date().toISOString());
   this.tob = tob;
   this.refTob = tob;
   this.orderHandler.newOrder(this.entryOrder);
@@ -107,7 +108,7 @@ this.updateEntryOrder = function(tob){
   this.entryOrder.size = this.remainder;
 
   if(tob > upSens || tob < downSens){
-console.log(tob,upSens,downSens);
+    console.log(downSens,this.tob,upSens,tob,new Date().toISOString());
     this.tob = tob;
     this.entryOrder.price = (tob + this.distance).toFixed(8);
     this.entryOrder.state = 'pending';
@@ -157,13 +158,13 @@ console.log(update,'match'); //testing
   }
 });
 
-this.orderHandler.on('cancel_ack',function(update){
-  if(update == self.entryOrder.orderID){
-     self.entryOrder.state = 'done';
-  }else if(update == self.exitOrder.orderID){
-    self.exitOrder.state = 'done';
-  }
-});
+//this.orderHandler.on('cancel_ack',function(update){
+//  if(update == self.entryOrder.orderID){
+//     self.entryOrder.state = 'done';
+//  }else if(update == self.exitOrder.orderID){
+//    self.exitOrder.state = 'done';
+//  }
+//});
 
 }
 inherits(Level,EventEmitter);

@@ -5,7 +5,7 @@ function PrinterGDAX(handler,dir){
 function incremental(data,time){
     var output = new String();
     if(data.type == 'received'){
-        output = data.type + ',' + data.time + ',' + data.product_id + ',' + data.sequence + ',' + data.order_id + ',' + data.price + ',' + data.remaining_size + ',' + data.side + ',' + data.order_type + ',' + time;
+        output = data.type + ',' + data.time + ',' + data.product_id + ',' + data.sequence + ',' + data.order_id + ',' + data.price + ',' + data.size + ',' + data.side + ',' + data.order_type + ',' + time;
     }else if(data.type == 'open'){
        output = data.type + ',' + data.time + ',' + data.product_id + ',' + data.sequence + ',' + data.order_id + ',' + data.price + ',' + data.remaining_size + ',' + data.side + ',' + time;
    }else if(data.type == 'done'){

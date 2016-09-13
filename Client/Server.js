@@ -47,11 +47,19 @@ io.on('connection',function(socket){
 
   io.emit('orderInit',bidOrders);
 
-  for(var i = 0;i<bids.length;i++){
-    bids[i].on('orderUpdate',function(data){
-      io.emit('bidOrderUpdate',i,data);
-    });
-  }
+//  for(var i = 0;i<bids.length;i++){
+//    bids[i].on('orderUpdate',function(data){
+//      io.emit('bidOrderUpdate',i,data);
+//    });
+//  }
+//this is really ugly, but above always sends i = 2
+  bids[0].on('orderUpdate',function(data){
+    io.emit('bidOrderUpdate',1,data);
+  });
+
+  bids[1].on('orderUpdate',function(data){
+    io.emit('bidOrderUpdate',2,data);
+  });
 
   socket.on('disconnect',function(){
     console.log('client disconnected');

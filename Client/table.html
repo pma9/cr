@@ -13,29 +13,14 @@
     <script src='/socket.io/socket.io.js'></script>
     <script>
       var socket = io();
-      socket.on('product',function(data){
-        var product = document.getElementById('product');
-        product.innerHTML = data;
-      });
-      socket.on('exchange',function(data){
-        var exchange = document.getElementById('exchange');
-        exchange.innerHTML = data;
-      });
       socket.on('orderInit',function(bids){
         for(var i = 0;i<bids.length;i++){
           addOrder('bid',bids[i]);
         }
       });
-      socket.on('bidUpdate',function(data){
-        update('bidPrice',data);
-//        updateTime('bidTime');
-      });
-      socket.on('askUpdate',function(data){
-        update('askPrice',data);
-//        updateTime('askTime');
-      });
       socket.on('bidOrderUpdate',function(index,order){
-        updateOrder('bid',index+2,order);
+        var num = Number(index);
+        updateOrder('bid',num,order);
       });
       function update(id,data){
          var element = document.getElementById(id);
@@ -54,7 +39,7 @@
         var cell1 = row.insertCell(1);
         var cell2 = row.insertCell(2);
         var cell3 = row.insertCell(3);
-        cell0.innerHTML = table.rows.length -3;
+        cell0.innerHTML = table.rows.length -2;
         cell1.innerHTML = order.state;
         var price = Number(order.price).toFixed(2);
         cell2.innerHTML = price;
@@ -62,6 +47,7 @@
       }
       function updateOrder(tableID,index,order){
         table = document.getElementById(tableID);
+        console.log(index);
         table.rows[index].cells[0].innerHTML = index;
         table.rows[index].cells[1].innerHTML = order.state;
         var price = Number(order.price).toFixed(2);
@@ -73,32 +59,14 @@
   <body bgcolor = black>
     <table style="font-size:12pt;" id="bid">
       <tr>
-        <th id='product'></th>
-        <th id='exchange'></th>
-      </tr>
-      <tr>
         <th>Bid</th>
         <th>State</th>
         <th>Price</th>
         <th>Size</th>
-<!--        <th>Time</th>  -->
         <th>Ask</th>
         <th>State</th>
         <th>Price</th>
         <th>Size</th>
-<!--        <th>Time</th>  -->
-      </tr>
-      <tr>
-        <td>0</td>
-        <td>market</td>
-        <td style="color:green;"; id='bidPrice'></td>
-        <td>1</td>
-<!--        <td id='bidTime'></td>  -->
-        <td>0</td>
-        <td>market</td>
-        <td style="color:red;"; id='askPrice'></td>
-        <td>1</td>
-<!--        <td id='askTime'></td> -->
       </tr>
     </table>
   </body>
