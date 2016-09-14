@@ -24,10 +24,8 @@ OrderHandlerGDAXProd.prototype.newOrder = function newOrder(msg){
         'product_id': msg.product,
         'client_oid': msg.clientID
       }
-      console.log(msg.clientID,'orderHandlerRec');
       gdax.buy(buyParams,function(err,res,data){
         self.emit('new_ack',data);
-        console.log(data);
       });
       break;
     case 'sell':

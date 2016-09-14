@@ -13,7 +13,7 @@ function MktMakeAlgo(properties,orderBookMgr,orderHandler,dataHandler,product,se
   var sens = properties.get('sens').split(",");
   //create levels
   for(var i = 0;i<distance.length;i++){
-    bids.push(new Level(product,"buy",-distance[i],Number(amount[i]),Number(takeProfit[i]),Number(stopOut[i]),orderHandler,state,Number(sens[i]),Number(stopOutTime[i]),dataHandler));
+    bids.push(new Level(i,product,"buy",-distance[i],Number(amount[i]),Number(takeProfit[i]),Number(stopOut[i]),orderHandler,state,Number(sens[i]),Number(stopOutTime[i]),dataHandler));
   }
 //  for(var i = 0;i<distance.length;i++){
 //    asks.push(new Level(product,"sell",Number(distance[i]),Number(amount[i]),Number(takeProfit[i]),Number(stopOut[i]),orderHandler,state,Number(sens[i]),Number(stopOutTime[i]),dataHandler));

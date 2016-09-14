@@ -19,7 +19,7 @@
         }
       });
       socket.on('bidOrderUpdate',function(index,order){
-        var num = Number(index);
+        var num = Number(index) + 1;
         updateOrder('bid',num,order);
       });
       function update(id,data){
@@ -47,7 +47,6 @@
       }
       function updateOrder(tableID,index,order){
         table = document.getElementById(tableID);
-        console.log(index);
         table.rows[index].cells[0].innerHTML = index;
         table.rows[index].cells[1].innerHTML = order.state;
         var price = Number(order.price).toFixed(2);

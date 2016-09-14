@@ -2,7 +2,8 @@ var Order = require('../Trading/Order');
 var inherits = require('util').inherits;
 var EventEmitter = require('events').EventEmitter;
 
-function Level(product,action,distance,amount,takeProfit,stopOut,orderHandler,state,sens,stopOutTime,dataHandler){
+function Level(index,product,action,distance,amount,takeProfit,stopOut,orderHandler,state,sens,stopOutTime,dataHandler){
+  this.index = index;
   this.side = action;
   this.exitSide = 'sell';
   if(this.side == 'sell'){
@@ -30,7 +31,7 @@ function Level(product,action,distance,amount,takeProfit,stopOut,orderHandler,st
   this.dataHandler = dataHandler;
   var self = this;
   EventEmitter.call(this);
-console.log(this.sens);
+
 this.updateSweepEnd = function(last){
   if(this.side == 'buy'){
     if(last < this.sweepEnd){
@@ -74,7 +75,6 @@ this.newEntryOrder = function(tob){
   this.entryOrder.size = this.remainder;
   this.entryOrder.state = 'pending';
   this.entryOrder.clientID = uuid.v4();
-  console.log(this.entryOrder.clientID,this.entryOrder.size,new Date().toISOString());
   this.tob = tob;
   this.refTob = tob;
   this.orderHandler.newOrder(this.entryOrder);
@@ -108,7 +108,6 @@ this.updateEntryOrder = function(tob){
   this.entryOrder.size = this.remainder;
 
   if(tob > upSens || tob < downSens){
-    console.log(downSens,this.tob,upSens,tob,new Date().toISOString());
     this.tob = tob;
     this.entryOrder.price = (tob + this.distance).toFixed(8);
     this.entryOrder.state = 'pending';
@@ -119,15 +118,14 @@ this.updateEntryOrder = function(tob){
 this.dataHandler.on('incremental',function(update){
   if(update.type == 'received'){
     if(update.client_oid == self.entryOrder.clientID){
-       console.log(update,'oid'); //testing
        self.entryOrder.orderID = update.order_id;
-       self.emit('orderUpdate', self.entryOrder);
+       self.emit('orderUpdate',self.index, self.entryOrder);
     }else if(update.client_oid == self.exitOrder.clientID){
       self.exitOrder.orderID = update.order_id;
     }
   }else if(update.type == 'match'){
     if(update.maker_order_id == self.entryOrder.orderID || update.taker_order_id == self.entryOrder.orderID){
-console.log(update,'match'); //testing
+console.log('match',update); //testing
       if(self.position == 0){
         self.sweepStart = self.refTob; //start recorded after initial fill
         self.sweepEnd = update.price;
@@ -142,11 +140,11 @@ console.log(update,'match'); //testing
   }else{
     if(self.entryOrder.orderID != 0){
       if(update.order_id == self.entryOrder.orderID){
-      console.log(update);  //testingi
-      self.emit('orderUpdate',self.entryOrder);
       self.refTob = self.tob; //at this point you know order is cancelled or open
       self.entryOrder.state = update.type;
       self.entryOrder.size = update.remaining_size;
+      self.emit('orderUpdate',self.index,self.entryOrder);
+      console.log(update);  //testingi
       //if partial or complete fill, will get subsequent match msg
       }
     }else if(self.exitOrder.orderID !=0){ 
