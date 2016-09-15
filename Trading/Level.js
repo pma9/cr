@@ -125,7 +125,8 @@ this.dataHandler.on('incremental',function(update){
     }
   }else if(update.type == 'match'){
     if(update.maker_order_id == self.entryOrder.orderID || update.taker_order_id == self.entryOrder.orderID){
-console.log('match',update); //testing
+      console.log('fill',update); //testing
+      self.emit('entryFill',update);
       if(self.position == 0){
         self.sweepStart = self.refTob; //start recorded after initial fill
         self.sweepEnd = update.price;
@@ -136,6 +137,7 @@ console.log('match',update); //testing
     }else if(update.maker_order_id == self.exitOrder.orderID || update.taker_order_id == self.exitOrder.orderID){
       self.position = self.position - update.size;
       self.remainder = self.amount - self.position;
+      self.emit('exitFill',update);
     }
   }else{
     if(self.entryOrder.orderID != 0){

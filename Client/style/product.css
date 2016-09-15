@@ -1,0 +1,25 @@
+body, html, #container {
+  height: 100%;
+}
+
+#working_div {
+height:50%;
+width:100%;
+background-color:black;
+margin:auto;
+color:white;
+}
+
+#divider_div{
+height:0.5%;
+width:100%;
+background-color:white;
+}
+
+#fills_div {
+height:50%;
+width:100%;
+background-color:black;
+margin:auto;
+color:white;
+}

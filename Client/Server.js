@@ -1,4 +1,5 @@
-var app = require('express')();
+var express = require('express');
+var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 var port = 3000;
@@ -6,24 +7,13 @@ var product = "";
 var exchange = "";
 var bids = [];
 var asks = [];
+var orderBookMgr;
 
-function Server(Port,orderBookMgr,Product,Exchange){
+function Server(Port,OrderBookMgr,Product,Exchange){
   port = Port;
   product = Product;
   exchange = Exchange;
-
-  orderBookMgr.on('bidUpdate',function(data){
-   io.emit('bidUpdate',data);
-  });
-
-  orderBookMgr.on('askUpdate',function(data){
-    io.emit('askUpdate',data);
-  });
-
-  orderBookMgr.on('lastUpdate',function(data){
-    io.emit('lastUpdate',data);
-  });
-
+  orderBookMgr = OrderBookMgr;
 }
 
 Server.prototype.register = function(Bids,Asks){
@@ -31,25 +21,51 @@ Server.prototype.register = function(Bids,Asks){
   asks = Asks;
 }
 
+app.use(express.static(__dirname + '/style'));
+
 app.get('/',function(req,res){
-  res.sendFile('/home/jeff/crypto/Client/table.html');
+  res.sendFile('/home/jeff/crypto/Client/overviewPage.html');
+});
+
+app.get('/BTC',function(req,res){
+  res.sendFile('/home/jeff/crypto/Client/productPage.html');
 });
 
 io.on('connection',function(socket){
   console.log('client connected');
-
-  io.emit('product',product);
-  io.emit('exchange',exchange);
+  
   var bidOrders = [];
   for(var i = 0;i<bids.length;i++){
     bidOrders.push(bids[i].entryOrder);
   }
-
+  
   io.emit('orderInit',bidOrders);
+
+  orderBookMgr.on('bidUpdate',function(data){
+   var price = Number(data).toFixed(2);
+   io.emit('overviewUpdate','GDAX_BTC-USD','BidTOB',price);
+  });
+
+  orderBookMgr.on('askUpdate',function(data){
+    var price = Number(data).toFixed(2);
+    io.emit('overviewUpdate','GDAX_BTC-USD','AskTOB',price);
+  });
+
+  orderBookMgr.on('lastUpdate',function(data){
+    io.emit('lastUpdate',data);
+  });
 
   for(var i = 0;i<bids.length;i++){
     bids[i].on('orderUpdate',function(index,data){
       io.emit('bidOrderUpdate',index,data);
+    });
+
+    bids[i].on('entryFill',function(data){
+      io.emit('bidFill',data);
+    });
+
+    bids[i].on('exitFill',function(data){
+      io.emit('askFill',data);
     });
   }
 

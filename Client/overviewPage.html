@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Overview</title>
+    <style>
+      table, th, td{
+        color:white;
+        background-color:black;
+        border: 1px solid gray;
+        border-collapse: collapse;
+      }
+    </style>
+    <script src='/socket.io/socket.io.js'></script>
+    <script>
+      var socket = io();
+      function init(){
+        var table = document.getElementById('overview');
+        var rowID = "GDAX_BTC-USD";
+        var row = table.insertRow(table.rows.length);
+        row.id = rowID;
+        var cell0 = row.insertCell(0);
+        var cell1 = row.insertCell(1);
+        var cell2 = row.insertCell(2);
+        cell2.id = "BidTOB";
+        var cell3 = row.insertCell(3);
+        cell3.id = "AskTOB";
+        var cell4 = row.insertCell(4);
+        cell4.id = "Position";
+        var cell5 = row.insertCell(5);
+        cell5.id = "Unrealized";
+        var cell6 = row.insertCell(6);
+        cell6.id = "Realized";
+        var cell7 = row.insertCell(7);
+        cell7.id = "State";
+        cell0.innerHTML = "GDAX";
+        cell1.innerHTML = "BTC-USD";
+        cell2.innerHTML = 0;
+        cell3.innerHTML = 0;
+        cell4.innerHTML = 0;
+        cell5.innerHTML = 0;
+        cell6.innerHTML = 0;
+        cell7.innerHTML = "on";
+      }
+      socket.on('overviewUpdate',function(row,column,value){
+        var row = document.getElementById(row);
+        var cell = row.cells.namedItem(column);
+        cell.innerHTML = value;
+      });
+      
+
+    </script>
+  </head>
+  <body bgcolor="black" onload="init()">
+    <table style="font-size:12pt;" id="overview">
+    <tr>
+      <th>Exchange</th>
+      <th>Product</th>
+      <th>BidTOB</th>
+      <th>AskTOB</th>
+      <th>Position</th>
+      <th>Unrealized</th>
+      <th>Realized</th>
+      <th>State</th>
+    </tr>
+  </body>
+</html>

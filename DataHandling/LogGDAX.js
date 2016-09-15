@@ -16,4 +16,5 @@ SubLogger.prototype = Logger.prototype;
 SubLogger.prototype.constructor = SubLogger;
 
 logger = new SubLogger();
+
 logger.run();

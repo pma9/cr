@@ -2,6 +2,7 @@
 <html>
   <head>
     <title>MktMake Client</title>
+    <link rel="stylesheet" type="text/css" href="product.css">
     <style>
       table, th, td{
         color:white;
@@ -21,6 +22,9 @@
       socket.on('bidOrderUpdate',function(index,order){
         var num = Number(index) + 1;
         updateOrder('bid',num,order);
+      });
+      socket.on('bidFill',function(fill){
+        addFill('bidFills',fill);
       });
       function update(id,data){
          var element = document.getElementById(id);
@@ -53,20 +57,53 @@
         table.rows[index].cells[2].innerHTML = price;
         table.rows[index].cells[3].innerHTML = order.size;
       }
+      function addFill(tableId,fill){
+        table = document.getElementById(tableID);
+        var row = table.insertRow(table.rows.length);
+        var cell0 = row.insertCell(0);
+        var cell1 = row.insertCell(1);
+        var cell2 = row.insertCell(2);
+        var cell3 = row.insertCell(3);
+        var cell4 = row.insertCell(4);
+        cell0.innerHTML = fill.trade_id;
+        var price = Number(fill.price).toFixed(2);
+        cell1.innerHTML = fill.side
+        cell2.innerHTML = price;
+        cell3.innerHTML = fill.size;
+        cell4.innerHTML = fill.time;
+      }
     </script>
   </head>
   <body bgcolor = black>
-    <table style="font-size:12pt;" id="bid">
-      <tr>
-        <th>Bid</th>
-        <th>State</th>
-        <th>Price</th>
-        <th>Size</th>
-        <th>Ask</th>
-        <th>State</th>
-        <th>Price</th>
-        <th>Size</th>
-      </tr>
-    </table>
+  <div id="container">
+    <div id="working_div">
+      <h4>working</h4> 
+      <table style="font-size:12pt;" id="bid">
+        <tr>
+          <th>Bid</th>
+          <th>State</th>
+          <th>Price</th>
+          <th>Size</th>
+          <th>Ask</th>
+          <th>State</th>
+          <th>Price</th>
+          <th>Size</th>
+        </tr>
+      </table>
+    </div>
+    <div id="divider_div"></div>
+    <div id="fills_div">
+      <h4>fills</h4>
+      <table style="font-size:12pt;" id="bidFills">
+        <tr>
+          <th>Bid</th>
+          <th>Side</th>
+          <th>Price</th>
+          <th>Size</th>
+          <th>Time</th>
+        </tr>
+      </table>
+    </div>
+  </div>
   </body>
 </html>
