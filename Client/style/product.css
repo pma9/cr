@@ -9,6 +9,11 @@ background-color:black;
 margin:auto;
 color:white;
 }
+#top_divider_div{
+height:0.5%;
+width:100%;
+background-color:white;
+}
 
 #divider_div{
 height:0.5%;

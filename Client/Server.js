@@ -23,11 +23,11 @@ Server.prototype.register = function(Bids,Asks){
 
 app.use(express.static(__dirname + '/style'));
 
-app.get('/',function(req,res){
+app.get('/Overview',function(req,res){
   res.sendFile('/home/jeff/crypto/Client/overviewPage.html');
 });
 
-app.get('/BTC',function(req,res){
+app.get('/',function(req,res){
   res.sendFile('/home/jeff/crypto/Client/productPage.html');
 });
 
@@ -68,6 +68,12 @@ io.on('connection',function(socket){
       io.emit('askFill',data);
     });
   }
+  
+  socket.on('updateState',function(state){
+    for(var i = 0;i<bids.length;i++){
+      bids[i].changeState(state);
+    }
+  });
 
   socket.on('disconnect',function(){
     console.log('client disconnected');

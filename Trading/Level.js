@@ -146,7 +146,7 @@ this.dataHandler.on('incremental',function(update){
       self.entryOrder.state = update.type;
       self.entryOrder.size = update.remaining_size;
       self.emit('orderUpdate',self.index,self.entryOrder);
-      console.log(update);  //testingi
+      console.log(update);
       //if partial or complete fill, will get subsequent match msg
       }
     }else if(self.exitOrder.orderID !=0){ 
@@ -157,14 +157,6 @@ this.dataHandler.on('incremental',function(update){
     }
   }
 });
-
-//this.orderHandler.on('cancel_ack',function(update){
-//  if(update == self.entryOrder.orderID){
-//     self.entryOrder.state = 'done';
-//  }else if(update == self.exitOrder.orderID){
-//    self.exitOrder.state = 'done';
-//  }
-//});
 
 }
 inherits(Level,EventEmitter);
@@ -186,27 +178,27 @@ Level.prototype.updateTOB = function updateTOB(tob){
   var TOB = Number(tob);
   switch(this.levelState){
     case "monitor":
-      if(this.entryOrder.state = 'open'){
+      if(this.entryOrder.state == 'open'){
         this.orderHandler.cancelOrder(this.entryOrder.orderID);
       }
-      if(this.exitOrder.state = 'open'){
+      if(this.exitOrder.state == 'open'){
         this.orderHandler.cancelOrder(this.exitOrder.orderID);
       }
       break;
     case "closing":
       if(this.position != 0){
-        if(this.exitOrder.state = 'done'){
+        if(this.exitOrder.state == 'done'){
           this.newExitOrder();
-        }else if(this.exitOrder.state = 'open'){
+        }else if(this.exitOrder.state == 'open'){
           this.updateExitOrder(TOB);
         }
       }
-      if(this.entryOrder.state = 'open'){
+      if(this.entryOrder.state == 'open'){
         this.orderHandler.cancelOrder(this.entryOrder.orderID);
       }
       break;
     case "on":
-      if(this.position != 0){
+     if(this.position != 0){
          if(this.entryOrder.state == 'open'){
            this.updateEntryOrder(TOB);
          }
@@ -229,7 +221,8 @@ Level.prototype.updateTOB = function updateTOB(tob){
 }
 
 Level.prototype.changeState = function changeState(state){
-  this.state = state;
+  this.levelState = state;
+  console.log("Level " + this.index + "state to " + this.levelState);
 }
 
 

@@ -26,6 +26,11 @@
       socket.on('bidFill',function(fill){
         addFill('bidFills',fill);
       });
+      socket.on('overviewUpdate',function(row,column,value){
+        var row = document.getElementById(row);
+        var cell = row.cells.namedItem(column);
+        cell.innerHTML = value;
+      });
       function update(id,data){
          var element = document.getElementById(id);
          var num = Number(data).toFixed(2);
@@ -72,10 +77,42 @@
         cell3.innerHTML = fill.size;
         cell4.innerHTML = fill.time;
       }
+      function updateState(state){
+        console.log(state);
+        socket.emit('updateState',state);
+      }
     </script>
   </head>
   <body bgcolor = black>
   <div id="container">
+    <div id="overview_div">
+      <table style='font-size:12pt;float:left;' id="overview">
+        <tr>
+          <th>Exchange</th>
+          <th>Product</th>
+          <th>BidTOB</th>
+          <th>AskTOB</th>
+          <th>Position</th>
+          <th>Unrealized</th>
+          <th>Realized</th>
+          <th>State</th>
+        </tr>
+        <tr id="GDAX_BTC-USD">
+          <td>GDAX</td>
+          <td>BTC-USD</td>
+          <td id="BidTOB">0</td> 
+          <td id="AskTOB">0</td> 
+          <td id="Position">0</td> 
+          <td id="Unrealized">0</td> 
+          <td id="Realized">0</td>
+          <td id="State">on</td> 
+        </tr>
+      </table>
+      <button style='float:left;' onclick="updateState('monitor')">monitor</button>
+      <button style='float:left;' onclick="updateState('closing')">closing</button>
+      <button style='float:left;' onclick="updateState('on')">on</button>
+    </div>
+    <div style='clear:left;' id="top_divider_div"></div>
     <div id="working_div">
       <h4>working</h4> 
       <table style="font-size:12pt;" id="bid">
