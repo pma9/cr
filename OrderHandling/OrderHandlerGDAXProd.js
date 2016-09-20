@@ -22,7 +22,8 @@ OrderHandlerGDAXProd.prototype.newOrder = function newOrder(msg){
         'price': msg.price,
         'size': msg.size,
         'product_id': msg.product,
-        'client_oid': msg.clientID
+        'client_oid': msg.clientID,
+        'post_only': 'true'
       }
       gdax.buy(buyParams,function(err,res,data){
         self.emit('new_ack',data);
@@ -33,7 +34,8 @@ OrderHandlerGDAXProd.prototype.newOrder = function newOrder(msg){
         'price': msg.price,
         'size': msg.size,
         'product_id': msg.product,
-        'client_oid': msg.clientID
+        'client_oid': msg.clientID,
+        'post_only': 'true'
       }
       gdax.sell(sellParams,function(err,res,data){
         self.emit('new_ack',data);

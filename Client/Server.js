@@ -21,6 +21,17 @@ Server.prototype.register = function(Bids,Asks){
   asks = Asks;
 }
 
+Server.prototype.updatePos = function(pos){
+  io.emit('overviewUpdate','GDAX_BTC-USD','Position',pos);
+}
+
+Server.prototype.updateRealized = function(realized){
+  io.emit('overviewUpdate','GDAX_BTC-USD','Realized',realized);
+}
+Server.prototype.updateMsgCount = function(msg){
+  io.emit('overviewUpdate','GDAX_BTC-USD','Msg',msg);
+}
+
 app.use(express.static(__dirname + '/style'));
 
 app.get('/Overview',function(req,res){
@@ -35,11 +46,13 @@ io.on('connection',function(socket){
   console.log('client connected');
   
   var bidOrders = [];
+  var askOrders = [];
   for(var i = 0;i<bids.length;i++){
     bidOrders.push(bids[i].entryOrder);
+    askOrders.push(bids[i].exitOrder);
   }
   
-  io.emit('orderInit',bidOrders);
+  io.emit('orderInit',bidOrders,askOrders);
 
   orderBookMgr.on('bidUpdate',function(data){
    var price = Number(data).toFixed(2);
@@ -56,16 +69,20 @@ io.on('connection',function(socket){
   });
 
   for(var i = 0;i<bids.length;i++){
-    bids[i].on('orderUpdate',function(index,data){
-      io.emit('bidOrderUpdate',index,data);
+    bids[i].on('entryUpdate',function(index,data){
+      io.emit('orderUpdate','bid',index,data);
+    });
+
+    bids[i].on('exitUpdate',function(index,data){
+      io.emit('orderUpdate','ask',index,data);
     });
 
     bids[i].on('entryFill',function(data){
-      io.emit('bidFill',data);
+      io.emit('fill','bidFill',data);
     });
 
     bids[i].on('exitFill',function(data){
-      io.emit('askFill',data);
+      io.emit('fill','askFill',data);
     });
   }
   

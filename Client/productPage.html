@@ -14,17 +14,18 @@
     <script src='/socket.io/socket.io.js'></script>
     <script>
       var socket = io();
-      socket.on('orderInit',function(bids){
+      socket.on('orderInit',function(bids,asks){
         for(var i = 0;i<bids.length;i++){
           addOrder('bid',bids[i]);
-        }
+          addOrder('ask',asks[i]);
+        }        
       });
-      socket.on('bidOrderUpdate',function(index,order){
+      socket.on('orderUpdate',function(table,index,order){
         var num = Number(index) + 1;
-        updateOrder('bid',num,order);
+        updateOrder(table,num,order);
       });
-      socket.on('bidFill',function(fill){
-        addFill('bidFills',fill);
+      socket.on('fill',function(table,fill){
+        addFill(table,fill);
       });
       socket.on('overviewUpdate',function(row,column,value){
         var row = document.getElementById(row);
@@ -96,6 +97,7 @@
           <th>Unrealized</th>
           <th>Realized</th>
           <th>State</th>
+          <th>Msg</th>
         </tr>
         <tr id="GDAX_BTC-USD">
           <td>GDAX</td>
@@ -106,6 +108,7 @@
           <td id="Unrealized">0</td> 
           <td id="Realized">0</td>
           <td id="State">on</td> 
+          <td id="Msg">0</td>
         </tr>
       </table>
       <button style='float:left;' onclick="updateState('monitor')">monitor</button>
@@ -115,12 +118,16 @@
     <div style='clear:left;' id="top_divider_div"></div>
     <div id="working_div">
       <h4>working</h4> 
-      <table style="font-size:12pt;" id="bid">
+      <table style="font-size:12pt;float:left;" id="bid">
         <tr>
           <th>Bid</th>
           <th>State</th>
           <th>Price</th>
           <th>Size</th>
+        </tr>
+      </table>
+      <table style="font-size:12pt;float:left;" id="ask">
+        <tr>
           <th>Ask</th>
           <th>State</th>
           <th>Price</th>
@@ -128,12 +135,21 @@
         </tr>
       </table>
     </div>
-    <div id="divider_div"></div>
+    <div style='clear:left;' id="divider_div"></div>
     <div id="fills_div">
       <h4>fills</h4>
-      <table style="font-size:12pt;" id="bidFills">
+      <table style="font-size:12pt;float:left;" id="bidFill">
         <tr>
           <th>Bid</th>
+          <th>Side</th>
+          <th>Price</th>
+          <th>Size</th>
+          <th>Time</th>
+        </tr>
+      </table>
+      <table style="font-size:12pt;float:left;" id="askFill">
+        <tr>
+          <th>Ask</th>
           <th>Side</th>
           <th>Price</th>
           <th>Size</th>
