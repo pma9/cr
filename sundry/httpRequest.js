@@ -4,10 +4,9 @@ var request = require('request');
 // console.log(body);
 //});
 
-request.get('https://api.itbit.com/v1/markets/XBTUSD/ticker')
+request.get('https://api.gdax.com/time')
 .on('response',function(res){
   res.on('data',function(d){
-//    process.stdout.write(d);
     console.log(d.toString());
   });
 });

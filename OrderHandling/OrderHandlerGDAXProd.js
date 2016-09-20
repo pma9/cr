@@ -78,6 +78,11 @@ OrderHandlerGDAXProd.prototype.query = function query(msg){
         self.emit('ack',data);
       });
       break;
+    case "time":
+      gdax.getTime(function(err,res,data){
+        self.emit('ack',data);
+      });
+      break;
     default:
       console.log('command not recognized');  
   }

@@ -10,6 +10,9 @@ var uuid = require('uuid');
 var client_oid = '48292d48-784f-11e6-8b77-86f30ca893d3';
 
 switch(msg.action){
+  case "time":
+    orderHandler.query(msg);
+    break;
   case "openOrders":
     orderHandler.query(msg);
     break;
@@ -58,7 +61,7 @@ orderHandler.on('fill_ack',function(data){
 });
 
 orderHandler.on('ack',function(data){
-  console.log(data);
+  console.log(data,new Date().toISOString());
 });
 
 
