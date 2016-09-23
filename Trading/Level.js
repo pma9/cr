@@ -48,9 +48,10 @@ this.updateSweepEnd = function(last){
 }
 
 this.calcTakeProfitPrice = function(){
-  var sweepSize = sweepStart - sweepEnd;
-  var offSet = sweepSize * this.takeProfit;
-  return this.sweepEnd + offSet;
+  var sweepSize = Number(this.sweepStart - this.sweepEnd);
+  var offSet = Number(sweepSize * this.takeProfit);
+  var takeProfitPrice = Number(Number(this.sweepEnd) + Number(offSet)).toFixed(2);
+  return takeProfitPrice;
 }
 
 this.stopOutCheck = function(tob){
@@ -84,30 +85,35 @@ this.newEntryOrder = function(tob){
 }
 
 this.newExitOrder = function(tob){
-  this.exitOrder.price = calcTakeProfitPrice();
-  if(this.comparator(this.exitOrder.price,tob)){
-    this.exitOrder.price = (tob + this.minIncrement).toFixed(8);
+  this.exitOrder.price = this.calcTakeProfitPrice();
+  if(this.comparator(Number(this.exitOrder.price),Number(tob))){
+    this.exitOrder.price = Number(Number(tob) + Number(this.minIncrement)).toFixed(2);
   }
+  this.exitOrder.size = this.position;
   this.exitOrder.state = 'pending';
   this.exitOrder.clientID = uuid.v1();
   this.orderHandler.newOrder(this.exitOrder);
 }
 
 this.updateExitOrder = function(tob){
-  if(this.stopOutCheck(tob)){
-    this.exitOrder.price = tob;
-    this.exitOrder.state = 'pending';
-    this.orderHandler.modifyOrder(this.exitOrder);
-  }else{
+//  if(this.stopOutCheck(tob)){
+//    console.log('stopOut');
+//    this.exitOrder.price = tob;
+//    this.exitOrder.size = this.position;
+//    this.exitOrder.state = 'pending';
+    //this stopout logic wouldn't work, modify will resubmit new tp order
+//    this.orderHandler.modifyOrder(this.exitOrder);
+//  }else{
     var price = this.calcTakeProfitPrice();
-    if(this.comparator(price,tob)){
-      price = (tob + this.minIncrement).toFixed(8);
+    if(this.comparator(Number(price),Number(tob))){
+      price = Number(Number(tob) + Number(this.minIncrement)).toFixed(2);
     }
-    if(price > this.exitOrder.price && price < this.exitOrder.price){
+    if(Number(price) > Number(this.exitOrder.price) || Number(price) < Number(this.exitOrder.price)){
       this.exitOrder.price = price;
+      this.exitOrder.size = this.position;
       this.exitOrder.state = 'pending';
       this.orderHandler.modifyOrder(this.exitOrder);
-    }
+//    }
   }
 }
 
@@ -132,19 +138,19 @@ this.dataHandler.on('incremental',function(update){
     }else if(update.client_oid == self.exitOrder.clientID){
       self.exitOrder.orderID = update.order_id;
       self.emit('exitUpdate',self.index,self.exitOrder);
+      console.log(update,self.exitOrder.orderID);
     }
   }else if(update.type == 'match'){
     if(update.maker_order_id == self.entryOrder.orderID || update.taker_order_id == self.entryOrder.orderID){
-      console.log('fill',update); //testing
+      console.log('fill',update,new Date().toISOString());
       self.emit('entryFill',update);
       if(self.position == 0){
-        self.sweepStart = self.refTob; //start recorded after initial fill
+        self.sweepStart = self.refTob;
         self.sweepEnd = update.price;
         self.sweepTime = Date.now();
       }
       self.position = self.position + update.size;
       self.remainder = self.amount - self.position;
-      console.log('sweep',self.sweepStart,self.sweepEnd,self.position,self.remainder);
     }else if(update.maker_order_id == self.exitOrder.orderID || update.taker_order_id == self.exitOrder.orderID){
       self.position = self.position - update.size;
       self.remainder = self.amount - self.position;
@@ -157,14 +163,16 @@ this.dataHandler.on('incremental',function(update){
       self.entryOrder.state = update.type;
       self.entryOrder.size = update.remaining_size;
       self.emit('entryUpdate',self.index,self.entryOrder);
-      console.log(update);
+      console.log('incremental entry ',update);
       //if partial or complete fill, will get subsequent match msg
       }
-    }else if(self.exitOrder.orderID !=0){ 
-     if(update.order_id = self.exitOrder.orderID){
+    }
+    if(self.exitOrder.orderID !=0){ 
+     if(update.order_id == self.exitOrder.orderID){
       self.exitOrder.state = update.type;
       self.exitOrder.size = update.remaining_size;
-      self.emit('exitUpate',self.index,self.exitOrder);
+      self.emit('exitUpdate',self.index,self.exitOrder);
+      console.log('incremental exit ',update);
      }
     }
   }
@@ -175,7 +183,7 @@ inherits(Level,EventEmitter);
 
 Level.prototype.updateLastTrade = function updateLastTrade(last){
   if(this.position !=0){
-    this.updateSweepSize(last);
+    this.updateSweepEnd(last);
   }
 }
 

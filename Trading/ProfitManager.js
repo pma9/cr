@@ -24,7 +24,7 @@ ProfitManager.prototype.getRealized = function(){
     cashIn = Number(shorts[i].price) * Number(shorts[i].size);
   }
 
-  var net = Number(cashIn - cashOut).toFixed(2);
+  var net = Number(cashIn - cashOut).toFixed(4);
   console.log(net);
   return net;
 

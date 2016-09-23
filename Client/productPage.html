@@ -63,7 +63,8 @@
         table.rows[index].cells[2].innerHTML = price;
         table.rows[index].cells[3].innerHTML = order.size;
       }
-      function addFill(tableId,fill){
+      function addFill(tableID,fill){
+        console.log('client adding fill ', new Date().toISOString());
         table = document.getElementById(tableID);
         var row = table.insertRow(table.rows.length);
         var cell0 = row.insertCell(0);

@@ -78,6 +78,7 @@ io.on('connection',function(socket){
     });
 
     bids[i].on('entryFill',function(data){
+      console.log('server emit entryFill ', new Date().toISOString());
       io.emit('fill','bidFill',data);
     });
 

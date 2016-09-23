@@ -15,7 +15,6 @@ inherits(MktDataHandlerGDAX,EventEmitter);
 
 MktDataHandlerGDAX.prototype.run = function run(){
   //subscribe
-  console.log('Mkt Data Handler Running');
   var self = this;
   var product = this.product;
   var path = "/products/" + product + "/book?level=3"
@@ -25,6 +24,7 @@ MktDataHandlerGDAX.prototype.run = function run(){
    });
 
   ws.on('open',function open(){
+    console.log('Mkt Data Handler Running', new Date().toISOString());
       var subscribe = {
         "type": "subscribe",
         "product_id": product

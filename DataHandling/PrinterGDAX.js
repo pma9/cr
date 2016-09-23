@@ -11,7 +11,6 @@ function incremental(data,time){
    }else if(data.type == 'done'){
        output = data.type + ',' + data.time + ',' + data.product_id + ',' + data.sequence + ',' + data.order_id + ',' + data.price + ',' + data.remaining_size + ',' + data.side + ',' + data.order_type + ',' + data.reason + ',' + time;
     }else if(data.type == 'match'){
-       console.log(data.price);
        output = data.type + ',' + data.time + ',' + data.product_id + ',' + data.sequence + ',' + data.trade_id + ',' + data.price + ',' + data.size + ',' + data.side + ',' + time;
     }else if(data.type == 'change'){
        output = data.type + ',' + data.time + ',' + data.product_id + ',' + data.sequence + ',' + data.order_id + ',' + data.price + ',' + data.size + ',' + data.side + ',' + time;
@@ -23,7 +22,7 @@ function incremental(data,time){
 
 function snapshot(data,time,product_id,sequence,side){
   var output = new String();
-  output = 'open' + ',' +  time + ',' + product_id + ',' + sequence + ',' + data[2] + ',' + data[0] + ',' + data[1] + ',' + side;
+  output = 'open' + ',' +  time + ',' + product_id + ',' + sequence + ',' + data[2] + ',' + data[0] + ',' + data[1] + ',' + side + ',' + time;
   return output;
 }
 
