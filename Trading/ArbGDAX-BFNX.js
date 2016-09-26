@@ -1,0 +1,21 @@
+var productQuote = process.argv[2];
+var productHedge = process.argv[3];
+var PropertiesReader = require('properties-reader');
+var properties = new PropertiesReader('../Settings/Arb/'+productQuote+'.ini');
+var DataHandlerHedge = require('../DataHandling/MktDataHandlerBFNX');
+var dataHandlerHedge = new DataHandlerHedge(productHedge);
+var OrderBookMgrHedge = require('../Trading/OrderBookMgrBFNX');
+var orderBookMgrHedge = new OrderBookMgrHedge(dataHandlerHedge);
+var ArbAlgo = require('../Trading/ArbAlgo');
+var DataHandlerQuote = require('../DataHandling/MktDataHandlerGDAX');
+var dataHandlerQuote = new DataHandlerQuote(productQuote);
+var OrderHandlerQuote = require('../OrderHandling/OrderHandlerGDAXProd');
+var orderHandlerQuote = new OrderHandlerQuote();
+var Server = require('../Client/ArbServer');
+var server = new Server(3000,orderBookMgrHedge,productQuote,"GDAX");
+var ProfitMgr = require('../Trading/ProfitManager');
+var profitMgr = new ProfitMgr();
+var algo = new ArbAlgo(properties,orderBookMgrHedge,orderHandlerQuote,dataHandlerQuote,productQuote,server,profitMgr);
+
+dataHandlerHedge.run();
+dataHandlerQuote.run();

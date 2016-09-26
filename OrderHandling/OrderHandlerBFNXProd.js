@@ -22,13 +22,6 @@ OrderHandlerBFNXProd.prototype.newOrder = function newOrder(msg){
       });
       break;
     case 'sell':
-      var sellParams = {
-        'price': msg.price,
-        'size': msg.size,
-        'product_id': msg.product,
-        'client_oid': msg.clientID,
-        'post_only': 'true'
-      }
       bfnx.new_order(msg.product,msg.size,msg.price,'bitfinex','sell','exchange limit',function(err,res,data){
         self.emit('new_ack',res);
       });
