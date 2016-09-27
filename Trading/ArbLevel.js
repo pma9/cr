@@ -1,8 +1,9 @@
 var Order = require('../Trading/Order');
 var inherits = require('util').inherits;
 var EventEmitter = require('events').EventEmitter;
+var Level = require('../Trading/Level');
 
-function Level(index,product,action,distance,amount,orderHandler,state,sens,dataHandler,comparator,minIncrement){
+function ArbLevel(index,product,action,distance,amount,takeProfit,stopOut,orderHandler,state,sens,stopOutTime,dataHandler,comparator,minIncrement){
   this.index = index;
   this.side = action;
   this.exitSide = 'sell';
@@ -89,7 +90,7 @@ this.dataHandler.on('incremental',function(update){
 }
 inherits(Level,EventEmitter);
 
-Level.prototype.updateTOB = function updateTOB(tob){
+ArbLevel.prototype.updateTOB = function updateTOB(tob){
   var TOB = Number(tob);
   switch(this.levelState){
     case "monitor":
@@ -120,16 +121,16 @@ Level.prototype.updateTOB = function updateTOB(tob){
   }
 }
 
-Level.prototype.changeState = function changeState(state){
+ArbLevel.prototype.changeState = function changeState(state){
   this.levelState = state;
   console.log("Level " + this.index + "state to " + this.levelState);
 }
 
 
 //in case of disconnection, or manual override
-Level.prototype.cancelAll = function cancelAll(){
+ArbLevel.prototype.cancelAll = function cancelAll(){
   if(this.entryOrder.state == 'open'){
     this.orderHandler.cancelOrder(this.entryOrder.orderID);
   }
 }
-module.exports = Level;
+module.exports = ArbLevel;

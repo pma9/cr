@@ -29,7 +29,7 @@ function appendOrder(book,update){
 
 function OrderBookAdd(book,comparator,update){
   var newLevel = {
-    price:update.price,
+    price:Number(update.price),
     orders: [{
       orderID:update.order_id,
       size:update.remaining_size
@@ -41,7 +41,7 @@ function OrderBookAdd(book,comparator,update){
       book.splice(i,0,newLevel);
       match = true;
       break;
-    }else if(newLevel.price == book[i].price){
+    }else if(Number(newLevel.price) == Number(book[i].price)){
       book[i].orders.push({orderID:update.order_id, size:update.remaining_size});
       match = true;
       break;
@@ -54,7 +54,7 @@ function OrderBookAdd(book,comparator,update){
 
 function OrderBookRemove(book,update){
   for(var i = 0;i<book.length;i++){
-    if(update.price == book[i].price){
+    if(Number(update.price) == Number(book[i].price)){
       for(var j = 0;j<book[i].orders.length;j++){
         if(update.order_id == book[i].orders[j].orderID){
           book[i].orders.splice(j,1);

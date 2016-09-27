@@ -38,6 +38,7 @@ OrderHandlerGDAXProd.prototype.newOrder = function newOrder(msg){
         'post_only': 'true'
       }
       gdax.sell(sellParams,function(err,res,data){
+        console.log(err,data);
         self.emit('new_ack',data);
       });
       break;

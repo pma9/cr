@@ -49,7 +49,9 @@ io.on('connection',function(socket){
   var askOrders = [];
   for(var i = 0;i<bids.length;i++){
     bidOrders.push(bids[i].entryOrder);
+    askOrders.push(asks[i].entryOrder);
     askOrders.push(bids[i].exitOrder);
+    bidOrders.push(asks[i].exitOrder);
   }
   
   io.emit('orderInit',bidOrders,askOrders);
@@ -68,28 +70,34 @@ io.on('connection',function(socket){
     io.emit('lastUpdate',data);
   });
 
-  for(var i = 0;i<bids.length;i++){
-    bids[i].on('entryUpdate',function(index,data){
-      io.emit('orderUpdate','bid',index,data);
+  function register(emitter,quoteEntry,quoteExit,fillEntry,fillExit){
+    emitter.on('entryUpdate',function(index,data){
+      io.emit('orderUpdate',quoteEntry,index,data);
     });
 
-    bids[i].on('exitUpdate',function(index,data){
-      io.emit('orderUpdate','ask',index,data);
+    emitter.on('exitUpdate',function(index,data){
+      io.emit('orderUpdate',quoteExit,index,data);
     });
 
-    bids[i].on('entryFill',function(data){
+    emitter.on('entryFill',function(data){
       console.log('server emit entryFill ', new Date().toISOString());
-      io.emit('fill','bidFill',data);
+      io.emit('fill',fillEntry,data);
     });
 
-    bids[i].on('exitFill',function(data){
-      io.emit('fill','askFill',data);
-    });
+    emitter.on('exitFill',function(data){
+      io.emit('fill',fillExit,data);
+    });  
   }
-  
+
+  for(var i = 0;i<bids.length;i++){
+    register(bids[i],'bid','ask','bidFill','askFill');
+    register(asks[i],'ask','bid','askFill','bidFill');
+  }
+
   socket.on('updateState',function(state){
     for(var i = 0;i<bids.length;i++){
       bids[i].changeState(state);
+      asks[i].changeState(state);
     }
   });
 
