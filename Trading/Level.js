@@ -83,7 +83,7 @@ this.dataHandler.on('incremental',function(update){
   }
 });
 
-this.orderHandler.on('new ack',function(data){
+this.orderHandler.on('new_ack',function(data){
   if(data.side == this.side){
     if(data.status == 'rejected'){
       this.entryOrder.state = 'done';
@@ -161,14 +161,16 @@ Level.prototype.newExitOrder = function(tob){
 }
 
 Level.prototype.updateExitOrder = function(tob){
-//  if(this.stopOutCheck(tob)){
-//    console.log('stopOut');
-//    this.exitOrder.price = tob;
-//    this.exitOrder.size = this.position;
-//    this.exitOrder.state = 'pending';
-    //this stopout logic wouldn't work, modify will resubmit new tp order
-//    this.orderHandler.modifyOrder(this.exitOrder);
-//  }else{
+  if(this.stopOutCheck(tob)){
+    var price = Number(Number(tob) + Number(this.minIncrement));
+    if(Number(price) > Number(this.exitOrder.price) + .0001 || Number(price) < Number(this.exitOrder.price)-.0001){
+      console.log('stop out',Number(price),Number(this.exitOrder.price));
+      this.exitOrder.price = price;
+      this.exitOrder.size = this.position;
+      this.exitOrder.state = 'pending';
+      this.orderHandler.modifyOrder(this.exitOrder);
+    }
+  }else{
     var price = this.calcTakeProfitPrice();
     if(this.comparator(Number(price),Number(tob))){
       price = Number(Number(tob) + Number(this.minIncrement)).toFixed(2);
@@ -178,7 +180,7 @@ Level.prototype.updateExitOrder = function(tob){
       this.exitOrder.size = this.position;
       this.exitOrder.state = 'pending';
       this.orderHandler.modifyOrder(this.exitOrder);
-//    }
+    }
   }
 }
 
@@ -189,7 +191,7 @@ Level.prototype.updateEntryOrder = function(tob){
 
   if(tob > upSens || tob < downSens){
     this.tob = tob;
-    this.entryOrder.price = (tob + this.distance).toFixed(8);
+    this.entryOrder.price = (tob + this.distance).toFixed(2);
     this.entryOrder.state = 'pending';
     this.orderHandler.modifyOrder(this.entryOrder);
   }

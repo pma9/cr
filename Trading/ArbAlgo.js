@@ -1,104 +1,27 @@
-var Level = require('../Trading/ArbLevel');
-var bids= [];
-var asks= [];
-var pos = 0;
-var msg = 0;
+var MktMakeAlgo = require('../Trading/MktMakeAlgo');
+var inherits = require('util').inherits;
 
-function ArbAlgo(properties,orderBookMgr,orderHandler,dataHandler,product,server,profitMgr){
-  //assign properties
-  var distance = properties.get('distance').split(",");
-  var amount = properties.get('amount').split(",");
-  var takeProfit = properties.get('takeProfit').split(",");
-  var stopOut = properties.get('stopOut').split(",");
-  var stopOutTime = properties.get('stopOutTime').split(",");
-  var state = properties.get('state');
-  var sens = properties.get('sens').split(",");
-  var minIncrement = properties.get('minIncrement');
+var ArbAlgo = function(properties,orderBookMgr,orderHandler,dataHandler,product,server,profitMgr,exitOrderHandler,exitProduct){
 
-  var greaterThan = function(a,b){
-    if(a>b){
-      return true;
-    }
-    return false;
-  }
+  MktMakeAlgo.call(this,properties,orderBookMgr,orderHandler,dataHandler,product,server,profitMgr);
 
-  var lessThan = function(a,b){
-    if(a<b){
-      return true;
-    }
-    return false;
-  }
+  this.exitOrderHandler = exitOrderHandler;
+  this.exitProduct = exitProduct;
 
-  //create levels
-  for(var i = 0;i<distance.length;i++){
-    bids.push(new Level(i,product,"buy",-distance[i],Number(amount[i]),orderHandler,state,Number(sens[i]),dataHandler,lessThan,minIncrement));
-  }
-
-  server.register(bids,asks);
-
-  orderBookMgr.on('bidUpdate',function(data){
-    for(var i = 0;i<bids.length;i++){
-      bids[i].updateTOB(data);
-    }
-  });
-
-  orderBookMgr.on('seq gap',function(){
-    for(var i = 0;i<bids.length;i++){
-      bids[i].cancelAll();
-    }
-  });
-
-  orderBookMgr.on('disconnect',function(){
-    for(var i = 0;i<bids.length;i++){
-      bids[i].cancelAll();
-    }
-  });
-
-  for(var i = 0;i<bids.length;i++){
-    bids[i].on('entryFill',function(fill){
-      pos = pos + fill.size;
-      profitMgr.updateLong(fill);
-      server.updatePos(pos);
-      server.updateRealized(profitMgr.getRealized());
-    });
-    bids[i].on('exitFill',function(fill){
-      pos = pos - fill.size;
-      profitMgr.updateShort(fill);
-      server.updatePos(pos);
-      server.updateRealized(profitMgr.getRealized());
-    });
-  } 
-
-  for(var i = 0;i<asks.length;i++){
-    asks[i].on('entryFill',function(fill){
-      pos = pos - fill.size;
-      profitMgr.updateShort(fill);
-      server.updatePos(pos);
-      server.updateRealized(profitMgr.getRealized());
-    });
-    asks[i].on('exitFill',function(fill){
-      pos = pos + fill.size;
-      profitMgr.updateLong(fill);
-      server.updatePos(pos);
-      server.updateRealized(profitMgr.getRealized());
-    });
-  } 
-  orderHandler.on('new_ack',function(data){
-    msg++;
-    server.updateMsgCount(msg);
-  });
-
-  orderHandler.on('cancel_ack',function(data){
-    msg++;
-    server.updateMsgCount(msg);
-  });
 }
+inherits(ArbAlgo,MktMakeAlgo);
 
-//algo must aggregate levels for overall position and P&L
+ArbAlgo.prototype.generateLevels = function(){
+  var Level = require('../Trading/ArbLevel');
 
-function printWorkingOrders(){
-  console.log(bids[0].entryOrder.price,"   ",asks[0].entryOrder.price);
+  for(var i = 0;i<this.distance.length;i++){
+    this.bids.push(new Level(i,this.product,"buy",-this.distance[i],Number(this.amount[i]),Number(this.takeProfit[i]),Number(this.stopOut[i]),this.orderHandler,this.state,Number(this.sens[i]),Number(this.stopOutTime[i]),this.dataHandler,this.lessThan,this.minIncrement,this.exitOrderHandler,this.exitProduct));
+  }
+  for(var i = 0;i<this.distance.length;i++){
+    this.asks.push(new Level(i,this.product,"sell",Number(this.distance[i]),Number(this.amount[i]),Number(this.takeProfit[i]),Number(this.stopOut[i]),this.orderHandler,this.state,Number(this.sens[i]),Number(this.stopOutTime[i]),this.dataHandler,this.greaterThan,this.minIncrement,this.exitOrderHandler,this.exitProduct));
+  }
+
+  this.server.register(this.bids,this.asks);
 }
-
 
 module.exports = ArbAlgo;

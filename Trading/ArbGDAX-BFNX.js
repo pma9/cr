@@ -11,11 +11,14 @@ var DataHandlerQuote = require('../DataHandling/MktDataHandlerGDAX');
 var dataHandlerQuote = new DataHandlerQuote(productQuote);
 var OrderHandlerQuote = require('../OrderHandling/OrderHandlerGDAXProd');
 var orderHandlerQuote = new OrderHandlerQuote();
+var OrderHandlerHedge = require('../OrderHandling/OrderHandlerBFNXProd');
+var orderHandlerHedge = new OrderHandlerHedge();
 var Server = require('../Client/ArbServer');
 var server = new Server(3000,orderBookMgrHedge,productQuote,"GDAX");
 var ProfitMgr = require('../Trading/ProfitManager');
 var profitMgr = new ProfitMgr();
-var algo = new ArbAlgo(properties,orderBookMgrHedge,orderHandlerQuote,dataHandlerQuote,productQuote,server,profitMgr);
-
+var algo = new ArbAlgo(properties,orderBookMgrHedge,orderHandlerQuote,dataHandlerQuote,productQuote,server,profitMgr,orderHandlerHedge,productHedge);
+algo.generateLevels();
+algo.registerListeners();
 dataHandlerHedge.run();
 dataHandlerQuote.run();

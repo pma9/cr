@@ -2,14 +2,35 @@ var PropertiesReader = require('properties-reader');
 var properties = PropertiesReader('/home/jeff/api/apiSettings.ini');
 var key = properties.get('data.keyBFNX');
 var secret = properties.get('data.secretBFNX');
-var BFNX = require('bitfinex-api-node').APIRest;
-var bfnx = new BFNX(key,secret);
+var BFNX_Rest = require('bitfinex-api-node').APIRest;
+var bfnx = new BFNX_Rest(key,secret);
+var BFNX_WS = require('bitfinex-api-node').WS;
+var ws = new BFNX_WS(key,secret);
 var inherits = require('util').inherits;
 var EventEmitter = require('events').EventEmitter;
 var uuid = require('uuid');
 
 function OrderHandlerBFNXProd(){
   EventEmitter.call(this);
+
+  ws.on('open',function(){
+    ws.auth();
+  });
+
+  ws.on('message',function(data){
+    if(data.event == 'auth'){
+      console.log(data);
+    }
+    if(data[1] == 'on' || data[1] == 'ou' || data[1] == 'oc'){
+      self.emit('orderUpdate',data);
+    }else if(data[1] == 'tu'){
+      self.emit('tradeUpdate',data);
+    }
+  });
+
+  ws.on('close',function(){
+    console.log('BFNX auth ws connection lost');
+  });
 }
 inherits(OrderHandlerBFNXProd,EventEmitter);
 
