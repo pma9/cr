@@ -9,29 +9,41 @@ var ArbLevel = function(index,product,action,distance,amount,takeProfit,stopOut,
   var self = this;
 
   this.exitOrderHandler.on('orderUpdate',function(data){
-//how to differentiate which order belongs to which level?
-//each level gets called for each fill, this is wrong
+
     if(data[1] == 'on'){
-      self.exitOrder.orderID = data[2][0];
-      self.exitOrder.state = 'open';
-      self.emit('exitUpdate',self.index,self.exitOrder);
-      console.log('incremental exit',data);
+      //initial identification by side and size
+      var amount = this.exitOrder.size;
+      if(this.exitSide == 'sell'){
+        amount = -amount;
+      }
+      if(data[2][3] == amount){
+        self.exitOrder.orderID = data[2][0];
+        self.exitOrder.state = 'open';
+        self.emit('exitUpdate',self.index,self.exitOrder);
+        console.log('incremental exit',data);
+      }
     }else if(data[1] == 'ou'){
-      self.exitOrder.price = data[2][6];
-      self.exitOrder.size = data[2][2];
-      self.emit('exitUpdate',self.index,self.exitOrder);
-      console.log('incremental exit',data);
+      //subsequent identification by id
+      if(data[2][0] == this.exitOrder.orderID){
+        self.exitOrder.price = data[2][6];
+        self.exitOrder.size = data[2][2];
+        self.emit('exitUpdate',self.index,self.exitOrder);
+        console.log('incremental exit',data);
+      }
     }else if(data[1] == 'oc'){
-      self.exitOrder.state = 'done';
-      self.emit('exitUpdate',self.index,self.exitOrder);
-      console.log('incremental exit',data);
+      if(data[2][0] == this.exitOrder.orderID){
+        self.exitOrder.state = 'done';
+        self.emit('exitUpdate',self.index,self.exitOrder);
+        console.log('incremental exit',data);
+      }
     }
   });
 
   this.exitOrderHandler.on('tradeUpdate',function(data){
     self.position = self.position - Math.abs(data[2][6]);
     self.remainder = self.amount - self.position;
-    self.emit('exitFill',data);
+    var fill = {price:data[2][6],size:data[2][5]};
+    self.emit('exitFill',fill);
     console.log('fill',data);
   });
 
