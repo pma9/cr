@@ -12,7 +12,8 @@ var uuid = require('uuid');
 
 function OrderHandlerBFNXProd(){
   EventEmitter.call(this);
-
+  var self = this;
+  
   ws.on('open',function(){
     ws.auth();
   });
@@ -35,15 +36,19 @@ function OrderHandlerBFNXProd(){
 inherits(OrderHandlerBFNXProd,EventEmitter);
 
 OrderHandlerBFNXProd.prototype.newOrder = function newOrder(msg){
+  console.log('BFNX order handler new exit req',msg.product,msg.size,msg.price);
+
   var self = this;
   switch(msg.side){
     case 'buy':
       bfnx.new_order(msg.product,msg.size,msg.price,'bitfinex','buy','exchange limit',function(err,res,data){
+        console.log(err,res);
         self.emit('new_ack',res);
       });
       break;
     case 'sell':
       bfnx.new_order(msg.product,msg.size,msg.price,'bitfinex','sell','exchange limit',function(err,res,data){
+        console.log(err,res);
         self.emit('new_ack',res);
       });
       break;

@@ -39,7 +39,7 @@ MktDataHandlerGDAX.prototype.run = function run(){
 
   ws.on('close',function(){
     var time = new Date().toISOString();
-    console.log("websocket connection lost: ", time);
+    console.log("GDAX websocket connection lost: ", time);
     self.emit('disconnect');
   });
 

@@ -90,6 +90,12 @@ MktMakeAlgo.prototype.registerListeners = function(){
       self.asks[i].cancelAll();
     }
   });
+  
+  var updateState = function(book,state){
+    for(var i = 0;i<book.length;i++){
+      book[i].changeState(state);
+    }
+  }
 
   for(var i = 0;i<this.bids.length;i++){
     this.bids[i].on('entryFill',function(fill){
@@ -97,12 +103,14 @@ MktMakeAlgo.prototype.registerListeners = function(){
       self.profitMgr.updateLong(fill);
       self.server.updatePos(self.pos);
       self.server.updateRealized(self.profitMgr.getRealized());
+      updateState(self.asks,'closing');
     });
     this.bids[i].on('exitFill',function(fill){
       self.pos = self.pos - fill.size;
       self.profitMgr.updateShort(fill);
       self.server.updatePos(self.pos);
       self.server.updateRealized(self.profitMgr.getRealized());
+      updateState(self.asks,'on');
     });
   } 
 
@@ -112,12 +120,14 @@ MktMakeAlgo.prototype.registerListeners = function(){
       self.profitMgr.updateShort(fill);
       self.server.updatePos(self.pos);
       self.server.updateRealized(self.profitMgr.getRealized());
+      updateState(self.bids,'closing');
     });
     this.asks[i].on('exitFill',function(fill){
       self.pos = self.pos + fill.size;
       self.profitMgr.updateLong(fill);
       self.server.updatePos(self.pos);
       self.server.updateRealized(self.profitMgr.getRealized());
+      updateState(self.bids,'on');
     });
   } 
   this.orderHandler.on('new_ack',function(data){

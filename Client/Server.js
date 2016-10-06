@@ -70,13 +70,13 @@ io.on('connection',function(socket){
     io.emit('lastUpdate',data);
   });
 
-  function register(emitter,quoteEntry,quoteExit,fillEntry,fillExit){
+  function register(emitter,quoteEntry,quoteExit,fillEntry,fillExit,length){
     emitter.on('entryUpdate',function(index,data){
       io.emit('orderUpdate',quoteEntry,index,data);
     });
 
     emitter.on('exitUpdate',function(index,data){
-      io.emit('orderUpdate',quoteExit,index,data);
+      io.emit('orderUpdate',quoteExit,index+length,data);
     });
 
     emitter.on('entryFill',function(data){
@@ -90,8 +90,8 @@ io.on('connection',function(socket){
   }
 
   for(var i = 0;i<bids.length;i++){
-    register(bids[i],'bid','ask','bidFill','askFill');
-    register(asks[i],'ask','bid','askFill','bidFill');
+    register(bids[i],'bid','ask','bidFill','askFill',bids.length);
+    register(asks[i],'ask','bid','askFill','bidFill',bids.length);
   }
 
   socket.on('updateState',function(state){
@@ -99,6 +99,7 @@ io.on('connection',function(socket){
       bids[i].changeState(state);
       asks[i].changeState(state);
     }
+    io.emit('overviewUpdate','GDAX_BTC-USD','State',state);
   });
 
   socket.on('disconnect',function(){

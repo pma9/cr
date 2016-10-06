@@ -34,6 +34,7 @@ function Level(index,product,action,distance,amount,takeProfit,stopOut,orderHand
   this.comparator = comparator;
   var self = this;
   EventEmitter.call(this);
+  this.stopOutState = false;
 
 this.dataHandler.on('incremental',function(update){
   if(update.type == 'received'){
@@ -84,14 +85,14 @@ this.dataHandler.on('incremental',function(update){
 });
 
 this.orderHandler.on('new_ack',function(data){
-  if(data.side == this.side){
+  if(data.side == self.side){
     if(data.status == 'rejected'){
-      this.entryOrder.state = 'done';
+      self.entryOrder.state = 'done';
       console.log('entry order rejected',data.reject_reason);
     }
-  }else if(data.side = this.exitSide){
+  }else if(data.side = self.exitSide){
     if(data.status == 'rejected'){
-      this.exitOrder.state = 'done';
+      self.exitOrder.state = 'done';
       console.log('exit order rejected',data.reject_reason);
     }
   }
@@ -150,9 +151,14 @@ Level.prototype.newEntryOrder = function(tob){
 }
 
 Level.prototype.newExitOrder = function(tob){
-  this.exitOrder.price = this.calcTakeProfitPrice();
-  if(this.comparator(Number(this.exitOrder.price),Number(tob))){
+  if(this.stopOutState){
+    console.log('new stop out order');
     this.exitOrder.price = Number(Number(tob) + Number(this.minIncrement)).toFixed(2);
+  }else{
+    this.exitOrder.price = this.calcTakeProfitPrice();
+    if(this.comparator(Number(this.exitOrder.price),Number(tob))){
+      this.exitOrder.price = Number(Number(tob) + Number(this.minIncrement)).toFixed(2);
+    }
   }
   this.exitOrder.size = this.position;
   this.exitOrder.state = 'pending';
@@ -161,21 +167,34 @@ Level.prototype.newExitOrder = function(tob){
 }
 
 Level.prototype.updateExitOrder = function(tob){
-  if(this.stopOutCheck(tob)){
-    var price = Number(Number(tob) + Number(this.minIncrement));
-    if(Number(price) > Number(this.exitOrder.price) + .0001 || Number(price) < Number(this.exitOrder.price)-.0001){
+
+  if(this.stopOutState){
+    var price = Number(Number(tob) + Number(this.minIncrement)).toFixed(2);
+    var upSens = Number(Number(this.exitOrder.price) + Number(this.minIncrement));
+    var downSens = Number(Number(this.exitOrder.price) - Number(this.minIncrement));
+    if(Number(price) > upSens || Number(price) < downSens){
       console.log('stop out',Number(price),Number(this.exitOrder.price));
       this.exitOrder.price = price;
       this.exitOrder.size = this.position;
       this.exitOrder.state = 'pending';
       this.orderHandler.modifyOrder(this.exitOrder);
     }
+  }else if(this.stopOutCheck(tob)){
+    this.stopOutState = true;
+    this.exitOrder.state = 'pending';
+    console.log('stop out');
+    this.orderHandler.cancelOrder(this.exitOrder);
   }else{
     var price = this.calcTakeProfitPrice();
+    var upSens = Number(Number(this.exitOrder.price) + Number(this.minIncrement));
+    var downSens = Number(Number(this.exitOrder.price) - Number(this.minIncrement));
+
     if(this.comparator(Number(price),Number(tob))){
       price = Number(Number(tob) + Number(this.minIncrement)).toFixed(2);
     }
-    if(Number(price) > Number(this.exitOrder.price) || Number(price) < Number(this.exitOrder.price)){
+ 
+    if(Number(price) > upSens || Number(price) < downSens ){
+      console.log('exitmodify',downSens,price,upSens);
       this.exitOrder.price = price;
       this.exitOrder.size = this.position;
       this.exitOrder.state = 'pending';
@@ -211,6 +230,7 @@ Level.prototype.updateTOB = function updateTOB(tob){
     this.sweepEnd = 0;
     this.trailingStopMax = 0;
     this.sweepTime = 0;
+    this.stopOutState = false;
   }
   var TOB = Number(tob);
   switch(this.levelState){

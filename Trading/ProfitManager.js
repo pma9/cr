@@ -1,31 +1,30 @@
-var longs = [];
-var shorts = [];
 
 function ProfitManager(){
-
+  this.longs = [];
+  this.shorts = [];
 }
 
 ProfitManager.prototype.updateLong = function(fill){
-  longs.push(fill);
+  this.longs.push(fill);
 }
 
 ProfitManager.prototype.updateShort = function(fill){
-  shorts.push(fill);
+  this.shorts.push(fill);
 }
 
 ProfitManager.prototype.getRealized = function(){
   var cashOut = Number(0);
   var cashIn = Number(0);
-  for(var i = 0; i<longs.length;i++){
-    cashOut = Number(longs[i].price) * Number(longs[i].size);
+  for(var i = 0; i<this.longs.length;i++){
+    cashOut = Number(this.longs[i].price) * Number(this.longs[i].size);
   }
 
-  for(var i = 0; i<shorts.length;i++){
-    cashIn = Number(shorts[i].price) * Number(shorts[i].size);
+  for(var i = 0; i<this.shorts.length;i++){
+    cashIn = Number(this.shorts[i].price) * Number(this.shorts[i].size);
   }
 
   var net = Number(cashIn - cashOut).toFixed(4);
-  console.log(net);
+  console.log('profitManager: ','cash in: ',cashIn,'cash out: ',cashOut,'net: ',net);
   return net;
 
 }

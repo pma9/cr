@@ -33,7 +33,7 @@ MktDataHandlerBFNX.prototype.run = function(){
   });
 
   ws.on('close',function(){
-    console.log('websocket connection lost: ',new Date().toISOString());
+    console.log('BFNX websocket connection lost: ',new Date().toISOString());
   });
 
   ws.on('error',function(data){
