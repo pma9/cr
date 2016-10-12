@@ -1,13 +1,13 @@
 
 function MktMakeAlgo(properties,orderBookMgr,orderHandler,dataHandler,product,server,profitMgr){
 
-  this.distance = properties.get('distance').split(",");
-  this.amount = properties.get('amount').split(",");
-  this.takeProfit = properties.get('takeProfit').split(",");
-  this.stopOut = properties.get('stopOut').split(",");
-  this.stopOutTime = properties.get('stopOutTime').split(",");
+  this.distance = properties.get('distance').toString().split(",");
+  this.amount = properties.get('amount').toString().split(",");
+  this.takeProfit = properties.get('takeProfit').toString().split(",");
+  this.stopOut = properties.get('stopOut').toString().split(",");
+  this.stopOutTime = properties.get('stopOutTime').toString().split(",");
   this.state = properties.get('state');
-  this.sens = properties.get('sens').split(",");
+  this.sens = properties.get('sens').toString().split(",");
   this.minIncrement = properties.get('minIncrement');
   this.orderBookMgr = orderBookMgr;
   this.orderHandler = orderHandler;
@@ -23,6 +23,7 @@ function MktMakeAlgo(properties,orderBookMgr,orderHandler,dataHandler,product,se
 }
 
 MktMakeAlgo.prototype.greaterThan = function(a,b){
+  console.log('compare: ',a,b);
   if(a>b){
     return true;
   }
@@ -30,6 +31,7 @@ MktMakeAlgo.prototype.greaterThan = function(a,b){
 }
 
 MktMakeAlgo.prototype.lessThan = function(a,b){
+  console.log('compare: ',a,b);
   if(a<b){
     return true;
   }

@@ -80,7 +80,6 @@ io.on('connection',function(socket){
     });
 
     emitter.on('entryFill',function(data){
-      console.log('server emit entryFill ', new Date().toISOString());
       io.emit('fill',fillEntry,data);
     });
 

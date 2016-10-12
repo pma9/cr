@@ -31,22 +31,22 @@ ArbAlgo.prototype.registerListeners = function(){
   var self = this;
 
   this.orderBookMgrQuote.on('bidUpdate',function(data){
-    this.bidTOB = data;
+    self.bidTOB = data;
   });
 
   this.orderBookMgrQuote.on('askUpdate',function(data){
-    this.askTOB = data;
+    self.askTOB = data;
   });
 
   this.orderBookMgrHedge.on('bidUpdate',function(data){
     for(var i = 0;i<self.bids.length;i++){
-      self.bids[i].updateTOB(data,askTOB);
+      self.bids[i].updateTOB(data,self.askTOB);
     }
   });
 
   this.orderBookMgrHedge.on('askUpdate',function(data){
     for(var i = 0;i<self.asks.length;i++){
-      self.asks[i].updateTOB(data,bidTOB);
+      self.asks[i].updateTOB(data,self.bidTOB);
     }
   });
 
@@ -85,10 +85,12 @@ ArbAlgo.prototype.registerListeners = function(){
 
   for(var i = 0;i<this.bids.length;i++){
     this.bids[i].on('entryFill',function(fill){
+console.log('arbAlgo fill:',fill);
       self.pos = self.pos + fill.size;
       self.profitMgr.updateLong(fill);
       self.server.updatePos(self.pos);
       self.server.updateRealized(self.profitMgr.getRealized());
+      updateState(self.bids,'closing');
       updateState(self.asks,'closing');
     });
     this.bids[i].on('exitFill',function(fill){
@@ -96,7 +98,6 @@ ArbAlgo.prototype.registerListeners = function(){
       self.profitMgr.updateShort(fill);
       self.server.updatePos(self.pos);
       self.server.updateRealized(self.profitMgr.getRealized());
-      updateState(self.asks,'on');
     });
   } 
 
@@ -106,6 +107,7 @@ ArbAlgo.prototype.registerListeners = function(){
       self.profitMgr.updateShort(fill);
       self.server.updatePos(self.pos);
       self.server.updateRealized(self.profitMgr.getRealized());
+      updateState(self.asks,'closing');
       updateState(self.bids,'closing');
     });
     this.asks[i].on('exitFill',function(fill){
@@ -113,7 +115,6 @@ ArbAlgo.prototype.registerListeners = function(){
       self.profitMgr.updateLong(fill);
       self.server.updatePos(self.pos);
       self.server.updateRealized(self.profitMgr.getRealized());
-      updateState(self.bids,'on');
     });
   } 
   this.orderHandler.on('new_ack',function(data){
