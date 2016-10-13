@@ -37,7 +37,7 @@ MktMakeLevel.prototype.updateEntryOrder = function(tob,opposite){
 }
 
 Level.prototype.newExitOrder = function(tob,opposite){
-  this.exitOrder.price = Number(tob - this.distance).toFixed(2);
+  this.exitOrder.price = Number(tob + this.takeProfit).toFixed(2);
   if(this.comparator(Number(this.exitOrder.price),Number(opposite))){
     this.exitOrder.price = Number(Number(opposite) + Number(this.minIncrement)).toFixed(2);
   }
@@ -48,7 +48,7 @@ Level.prototype.newExitOrder = function(tob,opposite){
 }
 
 Level.prototype.updateExitOrder = function(tob,opposite){
-  var price = Number(tob - this.distance).toFixed(2);
+  var price = Number(tob + this.takeProfit).toFixed(2);
   var upSens = Number(Number(this.exitOrder.price) + Number(this.minIncrement));
   var downSens = Number(Number(this.exitOrder.price) - Number(this.minIncrement));
 

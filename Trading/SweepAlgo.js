@@ -23,7 +23,6 @@ function SweepAlgo(properties,orderBookMgr,orderHandler,dataHandler,product,serv
 }
 
 SweepAlgo.prototype.greaterThan = function(a,b){
-  console.log('compare: ',a,b);
   if(a>b){
     return true;
   }
@@ -31,7 +30,6 @@ SweepAlgo.prototype.greaterThan = function(a,b){
 }
 
 SweepAlgo.prototype.lessThan = function(a,b){
-  console.log('compare: ',a,b);
   if(a<b){
     return true;
   }

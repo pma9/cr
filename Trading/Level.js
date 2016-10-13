@@ -170,8 +170,8 @@ Level.prototype.updateExitOrder = function(tob){
 
   if(this.stopOutState){
     var price = Number(Number(tob) + Number(this.minIncrement)).toFixed(2);
-    var upSens = Number(Number(this.exitOrder.price) + Number(this.minIncrement));
-    var downSens = Number(Number(this.exitOrder.price) - Number(this.minIncrement));
+    var upSens = Number(Number(this.exitOrder.price) + Number(this.sens));
+    var downSens = Number(Number(this.exitOrder.price) - Number(this.sens));
     if(Number(price) > upSens || Number(price) < downSens){
       console.log('stop out',Number(price),Number(this.exitOrder.price));
       this.exitOrder.price = price;
@@ -186,8 +186,8 @@ Level.prototype.updateExitOrder = function(tob){
     this.orderHandler.cancelOrder(this.exitOrder);
   }else{
     var price = this.calcTakeProfitPrice();
-    var upSens = Number(Number(this.exitOrder.price) + Number(this.minIncrement));
-    var downSens = Number(Number(this.exitOrder.price) - Number(this.minIncrement));
+    var upSens = Number(Number(this.exitOrder.price) + Number(this.sens));
+    var downSens = Number(Number(this.exitOrder.price) - Number(this.sens));
 
     if(this.comparator(Number(price),Number(tob))){
       price = Number(Number(tob) + Number(this.minIncrement)).toFixed(2);
