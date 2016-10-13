@@ -1,68 +1,43 @@
+var SweepAlgo = require('../Trading/SweepAlgo');
+var inherits = require('util').inherits;
+var bidTOB;
+var askTOB;
 
-function MktMakeAlgo(properties,orderBookMgr,orderHandler,dataHandler,product,server,profitMgr){
+var MktMakeAlgo = function(properties,orderBookMgr,orderHandler,dataHandler,product,server,profitMgr){
 
-  this.distance = properties.get('distance').toString().split(",");
-  this.amount = properties.get('amount').toString().split(",");
-  this.takeProfit = properties.get('takeProfit').toString().split(",");
-  this.stopOut = properties.get('stopOut').toString().split(",");
-  this.stopOutTime = properties.get('stopOutTime').toString().split(",");
-  this.state = properties.get('state');
-  this.sens = properties.get('sens').toString().split(",");
-  this.minIncrement = properties.get('minIncrement');
-  this.orderBookMgr = orderBookMgr;
-  this.orderHandler = orderHandler;
-  this.dataHandler = dataHandler;
-  this.product = product;
-  this.server = server;
-  this.profitMgr = profitMgr;
-  this.bids= [];
-  this.asks= [];
-  this.pos = 0;
-  this.msg = 0;
-  
+  SweepAlgo.call(this,properties,orderBookMgr,orderHandler,dataHandler,product,server,profitMgr);
+
 }
 
-MktMakeAlgo.prototype.greaterThan = function(a,b){
-  console.log('compare: ',a,b);
-  if(a>b){
-    return true;
-  }
-  return false;
-}
-
-MktMakeAlgo.prototype.lessThan = function(a,b){
-  console.log('compare: ',a,b);
-  if(a<b){
-    return true;
-  }
-  return false;
-}
+inherits(MktMakeAlgo,SweepAlgo);
 
 MktMakeAlgo.prototype.generateLevels = function(){
-  var Level = require('../Trading/Level');
+  var MktMakeLevel = require('../Trading/MktMakeLevel');
 
   for(var i = 0;i<this.distance.length;i++){
-    this.bids.push(new Level(i,this.product,"buy",-this.distance[i],Number(this.amount[i]),Number(this.takeProfit[i]),Number(this.stopOut[i]),this.orderHandler,this.state,Number(this.sens[i]),Number(this.stopOutTime[i]),this.dataHandler,this.lessThan,this.minIncrement));
+    this.bids.push(new MktMakeLevel(i,this.product,"buy",Number(this.distance[i]),Number(this.amount[i]),Number(this.takeProfit[i]),Number(this.stopOut[i]),this.orderHandler,this.state,Number(this.sens[i]),Number(this.stopOutTime[i]),this.dataHandler,this.lessThan,this.minIncrement));
   }
   for(var i = 0;i<this.distance.length;i++){
-    this.asks.push(new Level(i,this.product,"sell",Number(this.distance[i]),Number(this.amount[i]),Number(this.takeProfit[i]),Number(this.stopOut[i]),this.orderHandler,this.state,Number(this.sens[i]),Number(this.stopOutTime[i]),this.dataHandler,this.greaterThan,this.minIncrement));
+    this.asks.push(new MktMakeLevel(i,this.product,"sell",-Number(this.distance[i]),Number(this.amount[i]),Number(this.takeProfit[i]),Number(this.stopOut[i]),this.orderHandler,this.state,Number(this.sens[i]),Number(this.stopOutTime[i]),this.dataHandler,this.greaterThan,this.minIncrement));
   }
-
 
   this.server.register(this.bids,this.asks);
+
 }
 
 MktMakeAlgo.prototype.registerListeners = function(){
   var self = this;
   this.orderBookMgr.on('bidUpdate',function(data){
+    self.bidTOB = data;
     for(var i = 0;i<self.bids.length;i++){
-      self.bids[i].updateTOB(data);
+      self.bids[i].updateTOB(self.bidTOB,self.askTOB);
     }
   });
 
   this.orderBookMgr.on('askUpdate',function(data){
+    self.askTOB = data;
     for(var i = 0;i<self.asks.length;i++){
-      self.asks[i].updateTOB(data);
+      self.asks[i].updateTOB(self.askTOB,self.bidTOB);
     }
   });
 

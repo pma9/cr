@@ -1,56 +1,72 @@
-var SweepAlgo = require('../Trading/SweepAlgo');
-var inherits = require('util').inherits;
-var bidTOB;
-var askTOB;
 
-var ArbAlgo = function(properties,orderBookMgrQuote,orderBookMgrHedge,orderHandler,dataHandler,product,server,profitMgr,exitOrderHandler,exitProduct){
+function SweepAlgo(properties,orderBookMgr,orderHandler,dataHandler,product,server,profitMgr){
 
-  SweepAlgo.call(this,properties,orderBookMgrHedge,orderHandler,dataHandler,product,server,profitMgr);
-  this.orderBookMgrQuote = orderBookMgrQuote;
-  this.orderBookMgrHedge = orderBookMgrHedge;
-  this.exitOrderHandler = exitOrderHandler;
-  this.exitProduct = exitProduct;
-
+  this.distance = properties.get('distance').toString().split(",");
+  this.amount = properties.get('amount').toString().split(",");
+  this.takeProfit = properties.get('takeProfit').toString().split(",");
+  this.stopOut = properties.get('stopOut').toString().split(",");
+  this.stopOutTime = properties.get('stopOutTime').toString().split(",");
+  this.state = properties.get('state');
+  this.sens = properties.get('sens').toString().split(",");
+  this.minIncrement = properties.get('minIncrement');
+  this.orderBookMgr = orderBookMgr;
+  this.orderHandler = orderHandler;
+  this.dataHandler = dataHandler;
+  this.product = product;
+  this.server = server;
+  this.profitMgr = profitMgr;
+  this.bids= [];
+  this.asks= [];
+  this.pos = 0;
+  this.msg = 0;
+  
 }
-inherits(ArbAlgo,SweepAlgo);
 
-ArbAlgo.prototype.generateLevels = function(){
-  var Level = require('../Trading/ArbLevel');
+SweepAlgo.prototype.greaterThan = function(a,b){
+  console.log('compare: ',a,b);
+  if(a>b){
+    return true;
+  }
+  return false;
+}
+
+SweepAlgo.prototype.lessThan = function(a,b){
+  console.log('compare: ',a,b);
+  if(a<b){
+    return true;
+  }
+  return false;
+}
+
+SweepAlgo.prototype.generateLevels = function(){
+  var Level = require('../Trading/Level');
 
   for(var i = 0;i<this.distance.length;i++){
-    this.bids.push(new Level(i,this.product,"buy",-this.distance[i],Number(this.amount[i]),Number(this.takeProfit[i]),Number(this.stopOut[i]),this.orderHandler,this.state,Number(this.sens[i]),Number(this.stopOutTime[i]),this.dataHandler,this.lessThan,this.minIncrement,this.exitOrderHandler,this.exitProduct));
+    this.bids.push(new Level(i,this.product,"buy",-this.distance[i],Number(this.amount[i]),Number(this.takeProfit[i]),Number(this.stopOut[i]),this.orderHandler,this.state,Number(this.sens[i]),Number(this.stopOutTime[i]),this.dataHandler,this.lessThan,this.minIncrement));
   }
   for(var i = 0;i<this.distance.length;i++){
-    this.asks.push(new Level(i,this.product,"sell",Number(this.distance[i]),Number(this.amount[i]),Number(this.takeProfit[i]),Number(this.stopOut[i]),this.orderHandler,this.state,Number(this.sens[i]),Number(this.stopOutTime[i]),this.dataHandler,this.greaterThan,this.minIncrement,this.exitOrderHandler,this.exitProduct));
+    this.asks.push(new Level(i,this.product,"sell",Number(this.distance[i]),Number(this.amount[i]),Number(this.takeProfit[i]),Number(this.stopOut[i]),this.orderHandler,this.state,Number(this.sens[i]),Number(this.stopOutTime[i]),this.dataHandler,this.greaterThan,this.minIncrement));
   }
+
 
   this.server.register(this.bids,this.asks);
 }
 
-ArbAlgo.prototype.registerListeners = function(){
+SweepAlgo.prototype.registerListeners = function(){
   var self = this;
-
-  this.orderBookMgrQuote.on('bidUpdate',function(data){
-    self.bidTOB = data;
-  });
-
-  this.orderBookMgrQuote.on('askUpdate',function(data){
-    self.askTOB = data;
-  });
-
-  this.orderBookMgrHedge.on('bidUpdate',function(data){
+  this.orderBookMgr.on('bidUpdate',function(data){
     for(var i = 0;i<self.bids.length;i++){
-      self.bids[i].updateTOB(data,self.askTOB);
+      self.bids[i].updateTOB(data);
     }
   });
 
-  this.orderBookMgrHedge.on('askUpdate',function(data){
+  this.orderBookMgr.on('askUpdate',function(data){
     for(var i = 0;i<self.asks.length;i++){
-      self.asks[i].updateTOB(data,self.bidTOB);
+      self.asks[i].updateTOB(data);
     }
   });
 
-  this.orderBookMgrHedge.on('lastUpdate',function(data){
+  this.orderBookMgr.on('lastUpdate',function(data){
     for(var i = 0;i<self.asks.length;i++){
       self.asks[i].updateLastTrade(data);
     }
@@ -59,7 +75,7 @@ ArbAlgo.prototype.registerListeners = function(){
     }
   });
 
-  this.orderBookMgrQuote.on('seq gap',function(){
+  this.orderBookMgr.on('seq gap',function(){
     for(var i = 0;i<self.bids.length;i++){
       self.bids[i].cancelAll();
     }
@@ -68,7 +84,7 @@ ArbAlgo.prototype.registerListeners = function(){
     }
   });
 
-  this.orderBookMgrQuote.on('disconnect',function(){
+  this.orderBookMgr.on('disconnect',function(){
     for(var i = 0;i<self.bids.length;i++){
       self.bids[i].cancelAll();
     }
@@ -85,12 +101,10 @@ ArbAlgo.prototype.registerListeners = function(){
 
   for(var i = 0;i<this.bids.length;i++){
     this.bids[i].on('entryFill',function(fill){
-console.log('arbAlgo fill:',fill);
       self.pos = self.pos + fill.size;
       self.profitMgr.updateLong(fill);
       self.server.updatePos(self.pos);
       self.server.updateRealized(self.profitMgr.getRealized());
-      updateState(self.bids,'closing');
       updateState(self.asks,'closing');
     });
     this.bids[i].on('exitFill',function(fill){
@@ -98,6 +112,7 @@ console.log('arbAlgo fill:',fill);
       self.profitMgr.updateShort(fill);
       self.server.updatePos(self.pos);
       self.server.updateRealized(self.profitMgr.getRealized());
+      updateState(self.asks,'on');
     });
   } 
 
@@ -107,7 +122,6 @@ console.log('arbAlgo fill:',fill);
       self.profitMgr.updateShort(fill);
       self.server.updatePos(self.pos);
       self.server.updateRealized(self.profitMgr.getRealized());
-      updateState(self.asks,'closing');
       updateState(self.bids,'closing');
     });
     this.asks[i].on('exitFill',function(fill){
@@ -115,6 +129,7 @@ console.log('arbAlgo fill:',fill);
       self.profitMgr.updateLong(fill);
       self.server.updatePos(self.pos);
       self.server.updateRealized(self.profitMgr.getRealized());
+      updateState(self.bids,'on');
     });
   } 
   this.orderHandler.on('new_ack',function(data){
@@ -128,4 +143,4 @@ console.log('arbAlgo fill:',fill);
   });
 }
 
-module.exports = ArbAlgo;
+module.exports = SweepAlgo;
