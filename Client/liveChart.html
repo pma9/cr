@@ -1,0 +1,66 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+	<script src='/socket.io/socket.io.js'></script>
+	<script type="text/javascript">
+	var socket = io();
+	var yVal = 765;	
+	socket.on('bidUpdate',function(exch,price){
+		yVal = price;
+		console.log(yVal);
+	});
+
+	window.onload = function () {
+		
+		var xVal = 0;
+
+
+		var dps = []; // dataPoints
+
+		var chart = new CanvasJS.Chart("chartContainer",{
+			title :{
+				text: "Live Random Data"
+			},	
+			axisY :{
+				includeZero: false
+			},		
+			data: [{
+				type: "line",
+				dataPoints: dps 
+			}]
+		});
+
+		var updateInterval = 1000;
+		var dataLength = 100; // number of dataPoints visible at any point
+
+		var updateChart = function () {
+			dps.push({
+				x: xVal,
+				y: yVal
+			});
+			xVal++;
+			
+			if (dps.length > dataLength)
+			{
+				dps.shift();				
+			}
+			
+			chart.render();	
+		};
+
+		// generates first set of dataPoints
+	//	updateChart(dataLength); 
+
+		// update chart after specified time. 
+		setInterval(function(){updateChart()}, updateInterval); 
+
+	}
+	</script>
+	<script type="text/javascript" src="http://canvasjs.com/assets/script/canvasjs.min.js"></script>
+</head>
+<body>
+	<div id="chartContainer" style="height: 300px; width:100%;">
+	</div>
+</body>
+</html>
