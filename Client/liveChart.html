@@ -5,16 +5,15 @@
 	<script src='/socket.io/socket.io.js'></script>
 	<script type="text/javascript">
 	var socket = io();
-	var yVal = 765;	
+	var yVal = Number(765);	
 	socket.on('bidUpdate',function(exch,price){
-		yVal = price;
-		console.log(yVal);
+		yVal = Number(price);
+//		console.log(yVal);
 	});
 
 	window.onload = function () {
 		
 		var xVal = 0;
-
 
 		var dps = []; // dataPoints
 
@@ -40,7 +39,6 @@
 				y: yVal
 			});
 			xVal++;
-			
 			if (dps.length > dataLength)
 			{
 				dps.shift();				
