@@ -4,10 +4,13 @@ var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 var port = 3000;
 var orderBookMgrGDAX;
+var orderBookMgrBFNX;
 
-function ChartServer(OrderBookMgrGDAX){
+function ChartServer(OrderBookMgrGDAX,OrderBookMgrBFNX,Port){
   orderBookMgrGDAX = OrderBookMgrGDAX;
-}
+  orderBookMgrBFNX = OrderBookMgrBFNX;
+  port = Port;
+//}
 
 app.get('/',function(req,res){
   res.sendFile('/home/jeff/crypto/Client/liveChart.html');
@@ -26,6 +29,16 @@ io.on('connection',function(socket){
     io.emit('askUpdate','GDAX',price);
   });
 
+  orderBookMgrBFNX.on('bidUpdate',function(data){
+    var price = Number(data).toFixed(2);
+    io.emit('bidUpdate','BFNX',price);
+  });
+
+  orderBookMgrBFNX.on('askUpdate',function(data){
+    var price = Number(data).toFixed(2);
+    io.emit('askUpdate','BFNX',price);
+  });
+
   socket.on('disconnect',function(){
     console.log('client disconnected');
   });
@@ -34,5 +47,5 @@ io.on('connection',function(socket){
 server.listen(port,function(){
   console.log('server listening on port' + port);
 }); 
-
+}
 module.exports = ChartServer;

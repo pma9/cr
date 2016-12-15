@@ -5,28 +5,73 @@
 	<script src='/socket.io/socket.io.js'></script>
 	<script type="text/javascript">
 	var socket = io();
-	var yVal = Number(765);	
+	var yBidGDAX;
+	var yAskGDAX;
+	var yBidBFNX;
+	var yAskBFNX;
+	
 	socket.on('bidUpdate',function(exch,price){
-		yVal = Number(price);
-//		console.log(yVal);
+		if(exch == 'GDAX'){
+		  yBidGDAX = Number(price);
+		}else if(exch == 'BFNX'){
+		  yBidBFNX = Number(price);
+		}
 	});
+
+	socket.on('askUpdate',function(exch,price){
+		if(exch == 'GDAX'){
+		  yAskGDAX = Number(price);
+		}else if(exch == 'BFNX'){
+		  yAskBFNX = Number(price);
+		}
+	});
+
+	validData = function(){
+	  if(yBidGDAX > 0  && yAskGDAX >0 && yBidBFNX >0 && yAskBFNX >0){
+	    return true;
+	  }
+	    return false;
+	};
 
 	window.onload = function () {
 		
 		var xVal = 0;
 
-		var dps = []; // dataPoints
-
+		var bidGDAX = [];
+		var askGDAX = [];
+		var bidBFNX = [];
+		var askBFNX = [];
 		var chart = new CanvasJS.Chart("chartContainer",{
 			title :{
-				text: "Live Random Data"
+				text: "BTC-USD"
 			},	
 			axisY :{
 				includeZero: false
 			},		
+			legend: {
+				verticalAlign: 'center',
+				horizontalAlign: 'right'
+			},
 			data: [{
 				type: "line",
-				dataPoints: dps 
+				showInLegend: true,
+				name: 'BidGDAX',
+				dataPoints: bidGDAX 
+			},{
+				type: "line",
+				showInLegend: true,
+				name: 'AskGDAX',
+				dataPoints: askGDAX
+			},{
+				type: "line",
+				showInLegend: true,
+				name: 'BidBFNX',
+				dataPoints: bidBFNX
+			},{
+				type: 'line',
+				showInLegend: true,
+				name: 'AskBFNX',
+				dataPoints: askBFNX
 			}]
 		});
 
@@ -34,21 +79,34 @@
 		var dataLength = 100; // number of dataPoints visible at any point
 
 		var updateChart = function () {
-			dps.push({
+			bidGDAX.push({
 				x: xVal,
-				y: yVal
+				y: yBidGDAX
+			});
+			askGDAX.push({
+				x: xVal,
+				y: yAskGDAX
+			});
+			bidBFNX.push({
+				x: xVal,
+				y: yBidBFNX
+			});
+			askBFNX.push({
+				x: xVal,
+				y: yAskBFNX
 			});
 			xVal++;
-			if (dps.length > dataLength)
+			if (bidGDAX.length > dataLength)
 			{
-				dps.shift();				
+				bidGDAX.shift();
+				askGDAX.shift();
+				bidBFNX.shift();
+				askBFNX.shift();				
 			}
-			
-			chart.render();	
+			if(validData()){	
+			  chart.render();	
+			}
 		};
-
-		// generates first set of dataPoints
-	//	updateChart(dataLength); 
 
 		// update chart after specified time. 
 		setInterval(function(){updateChart()}, updateInterval); 

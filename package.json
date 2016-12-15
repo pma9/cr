@@ -1,0 +1,22 @@
+{
+  "name": "crypto_trading",
+  "version": "1.0.0",
+  "description": "\"crypto currency trading platform\"",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jeffsenk/cr.git"
+  },
+  "author": "jeff.senk <jeff.senk@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jeffsenk/cr/issues"
+  },
+  "homepage": "https://github.com/jeffsenk/cr#readme",
+  "dependencies": {
+    "express": "^4.14.0"
+  }
+}
