@@ -18,7 +18,7 @@ var bidSizeGDAX = 0;
 var askSizeGDAX = 0;
 
 function recalc(){
-  console.log(bidPriceGDAX,bidSizeGDAX,bidPriceBFNX,askPriceGDAX,askPriceBFNX);
+  console.log(bidPriceGDAX,bidSizeGDAX,bidPriceBFNX,askPriceGDAX,askSizeGDAX,askPriceBFNX);
 }
 
 orderBookMgrBFNX.on('bidUpdate',function(data){
@@ -37,8 +37,9 @@ orderBookMgrGDAX.on('bidUpdate',function(price,size){
     recalc();
 });
 
-orderBookMgrGDAX.on('askUpdate',function(data){
-    askPriceGDAX = data;
+orderBookMgrGDAX.on('askUpdate',function(price,size){
+    askPriceGDAX = price;
+    askSizeGDAX = size
     recalc();
 });
 
