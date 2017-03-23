@@ -73,6 +73,14 @@ function OrderBookModify(book,update){
 
 }
 
+function aggregateLevelSize(level){
+  var total = 0;
+  for(var i =0;i<level.orders.size;i++){
+    total = total + level.orders[i].size;
+  }
+  return total;
+}
+
 function OrderBookMgrGDAX(reader){
   EventEmitter.call(this);
   var self = this;
@@ -86,8 +94,8 @@ function OrderBookMgrGDAX(reader){
       }else if(update.type == 'done'){
         OrderBookRemove(bids,update);
       }
-      if(bids.length>0 && asks.length >0){
-        self.emit('bidUpdate',bids[0].price);
+      if(bids.length>0){
+        self.emit('bidUpdate',bids[0].price,aggregateLevelSize(bids[0]));
       }
     }else if(update.side == 'sell'){
       if(update.type == 'open'){
@@ -96,7 +104,7 @@ function OrderBookMgrGDAX(reader){
         OrderBookRemove(asks,update);
       }
       if(asks.length>0){
-        self.emit('askUpdate',asks[0].price);
+        self.emit('askUpdate',asks[0].price,aggregateLevelSize(asks[0]));
       }
     }
   });
