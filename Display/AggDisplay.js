@@ -18,7 +18,7 @@ var bidSizeGDAX = 0;
 var askSizeGDAX = 0;
 
 function recalc(){
-  console.log(bidPriceGDAX,bidSizeGDAX,bidPriceBFNX,askPriceGDAX,askSizeGDAX,askPriceBFNX);
+  console.log(bidPriceGDAX,bidSizeGDAX,askPriceGDAX,askSizeGDAX);
 }
 
 orderBookMgrBFNX.on('bidUpdate',function(data){

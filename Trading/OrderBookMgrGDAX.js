@@ -73,18 +73,30 @@ function OrderBookModify(book,update){
 
 }
 
-function aggregateLevelSize(level){
-  var total = 0;
-  for(var i =0;i<level.orders.size;i++){
-    total = total + level.orders[i].size;
+function aggregateLevelSize(book,levels){
+  //console.log(level.orders.length);
+  var total = Number(0);
+  for(var i =0;i<levels;i++){
+    for(var j=0;j<book[i].orders.length;j++){
+      total = total + Number(book[i].orders[j].size);
+    }
   }
   return total;
 }
+
 
 function OrderBookMgrGDAX(reader){
   EventEmitter.call(this);
   var self = this;
   //every hist update considered incremental
+  this.getSize = function(book,levels){
+    if(book == "bid"){
+      return aggregateLevelSize(bids,levels);
+    }else if(book == "ask"){
+      return aggregateLevelSize(asks,levels);
+    }
+      return "invalid book";
+  }
   reader.on('incremental', function(update){
     if(update.type == 'match'){
       self.emit('lastUpdate',update.price);
@@ -95,7 +107,7 @@ function OrderBookMgrGDAX(reader){
         OrderBookRemove(bids,update);
       }
       if(bids.length>0){
-        self.emit('bidUpdate',bids[0].price,aggregateLevelSize(bids[0]));
+        self.emit('bidUpdate',bids[0].price,aggregateLevelSize(bids,1));
       }
     }else if(update.side == 'sell'){
       if(update.type == 'open'){
@@ -104,7 +116,7 @@ function OrderBookMgrGDAX(reader){
         OrderBookRemove(asks,update);
       }
       if(asks.length>0){
-        self.emit('askUpdate',asks[0].price,aggregateLevelSize(asks[0]));
+        self.emit('askUpdate',asks[0].price,aggregateLevelSize(asks,1));
       }
     }
   });

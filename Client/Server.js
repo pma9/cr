@@ -91,15 +91,15 @@ console.log('entry update',index);
 
 //  for(var i = 0;i<bids.length;i++){
     registerEmitter(bids[0],'bid','ask','bidFill','askFill',bids.length);
-    registerEmitter(bids[1],'bid','ask','bidFill','askFill',bids.length);
-    registerEmitter(bids[2],'bid','ask','bidFill','askFill',bids.length);
+//    registerEmitter(bids[1],'bid','ask','bidFill','askFill',bids.length);
+//    registerEmitter(bids[2],'bid','ask','bidFill','askFill',bids.length);
 
 //  }
 
 //  for(var i = 0;i<asks.length;i++){
     registerEmitter(asks[0],'ask','bid','askFill','bidFill',asks.length);
-    registerEmitter(asks[1],'ask','bid','askFill','bidFill',asks.length);
-    registerEmitter(asks[2],'ask','bid','askFill','bidFill',asks.length);
+//    registerEmitter(asks[1],'ask','bid','askFill','bidFill',asks.length);
+//    registerEmitter(asks[2],'ask','bid','askFill','bidFill',asks.length);
 //  }
 
   socket.on('updateState',function(state){
