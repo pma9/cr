@@ -39,7 +39,7 @@ MktMakeAlgo.prototype.registerListeners = function(){
 
   var checkSize = function(){
     if(self.bidSize - self.askSize > self.sizeDiff){
-      console.log('buy',self.sizeDiff)
+      console.log('buy',self.bidSize - self.askSize)
       if(self.bids[0].levelState == "closing"){
         updateState(self.bids,"on"); 
       }
@@ -47,7 +47,7 @@ MktMakeAlgo.prototype.registerListeners = function(){
         updateState(self.asks,"closing");
       }
     }else if(self.askSize - self.bidSize >self.sizeDiff){
-      console.log('sell',self.sizeDiff)
+      console.log('sell',self.askSize - self.bidSize)
       if(self.asks[0].levelState == "closing"){
         updateState(self.asks,"on");
       }
@@ -113,14 +113,14 @@ MktMakeAlgo.prototype.registerListeners = function(){
 
   for(var i = 0;i<this.bids.length;i++){
     this.bids[i].on('entryFill',function(fill){
-      self.pos = self.pos + fill.size;
+      self.pos = Number(self.pos) + Number(fill.size);
       self.profitMgr.updateLong(fill);
       self.server.updatePos(self.pos);
       self.server.updateRealized(self.profitMgr.getRealized());
       updateState(self.asks,'closing');
     });
     this.bids[i].on('exitFill',function(fill){
-      self.pos = self.pos - fill.size;
+      self.pos = Number(self.pos) - Number(fill.size);
       self.profitMgr.updateShort(fill);
       self.server.updatePos(self.pos);
       self.server.updateRealized(self.profitMgr.getRealized());
@@ -130,14 +130,14 @@ MktMakeAlgo.prototype.registerListeners = function(){
 
   for(var i = 0;i<this.asks.length;i++){
     this.asks[i].on('entryFill',function(fill){
-      self.pos = self.pos - fill.size;
+      self.pos = Number(self.pos) - Number(fill.size);
       self.profitMgr.updateShort(fill);
       self.server.updatePos(self.pos);
       self.server.updateRealized(self.profitMgr.getRealized());
       updateState(self.bids,'closing');
     });
     this.asks[i].on('exitFill',function(fill){
-      self.pos = self.pos + fill.size;
+      self.pos = Number(self.pos) + Number(fill.size);
       self.profitMgr.updateLong(fill);
       self.server.updatePos(self.pos);
       self.server.updateRealized(self.profitMgr.getRealized());
