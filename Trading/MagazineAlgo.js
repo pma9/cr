@@ -39,8 +39,10 @@ MagazineAlgo.prototype.registerListeners = function(){
   }
 
   var checkSize = function(){
+    var imbalance = self.bidSize - self.askSize;
+    self.server.updateIndicator(imbalance);
     //long imbalance
-    if(self.bidSize - self.askSize > self.sizeDiff){
+    if(imbalance > self.sizeDiff){
 //      console.log('buy',self.bidSize - self.askSize)
       if(self.pos >=0){
         if(self.bids[0].levelState == "closing" || self.bids[0].levelState == "neutral"){
@@ -50,7 +52,7 @@ MagazineAlgo.prototype.registerListeners = function(){
       if(self.asks[0].levelState == "on" || self.asks[0].levelState == "neutral"){
         updateState(self.asks,"closing");
       }
-    }else if(self.askSize - self.bidSize >self.sizeDiff){
+    }else if(imbalance < -self.sizeDiff){
     //short imbalance
 //      console.log('sell',self.askSize - self.bidSize)
       if(self.pos <=0){

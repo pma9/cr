@@ -21,6 +21,10 @@ Server.prototype.register = function(Bids,Asks){
   asks = Asks;
 }
 
+Server.prototype.updateIndicator = function(indicator){
+  io.emit('overviewUpdate','GDAX_BTC-USD','Indicator',Number(indicator).toFixed(2));
+}
+
 Server.prototype.updatePos = function(pos){
   io.emit('overviewUpdate','GDAX_BTC-USD','Position',pos);
 }
