@@ -24,7 +24,7 @@ function Level(index,product,action,distance,amount,takeProfit,stopOut,orderHand
   this.tob = Number(0);
   this.refTob = Number(0);
   this.position = Number(0);
-  this.remainder = this.amount;
+  this.remainder = Number(this.amount);
   this.sweepStart = 0;
   this.sweepEnd = 0;
   this.sweepTime = 0;
@@ -55,11 +55,13 @@ this.dataHandler.on('incremental',function(update){
         self.sweepEnd = update.price;
         self.sweepTime = Date.now();
       }
-      self.position = self.position + update.size;
-      self.remainder = self.amount - self.position;
+      self.position = Number(self.position) + Number(update.size);
+      self.remainder = Number(self.amount) - Number(self.position);
+      console.log('remainder:',self.remainder,'amount:',self.amount,'position:',self.position);
     }else if(update.maker_order_id == self.exitOrder.orderID || update.taker_order_id == self.exitOrder.orderID){
-      self.position = self.position - update.size;
-      self.remainder = self.amount - self.position;
+      self.position = Number(self.position) - Number(update.size);
+      self.remainder = Number(self.amount) - Number(self.position);
+      console.log('remainder:',self.remainder,'amount:',self.amount,'position:',self.position);
       self.emit('exitFill',update);
     }
   }else{

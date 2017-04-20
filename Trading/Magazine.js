@@ -13,21 +13,24 @@ Magazine.prototype.newEntryOrder = function(tob,opposite){
     this.entryOrder.price = tob;
   }
   this.entryOrder.size = this.clipSize;
-  if(this.remainder < this.clipSize){
+  if(this.remainder < this.entryOrder.size){
     this.entryOrder.size = this.remainder;
   }
-  this.entryOrder.state = 'pending';
-  this.entryOrder.clientID = this.uuid.v4();
-  this.tob = tob;
-  this.refTob = tob;
-  this.orderHandler.newOrder(this.entryOrder);
+  if(this.entryOrder.size >Number(0)){
+    console.log('newEntry','remainder:',this.remainder,'orderSize:',this.entryOrder.size);
+    this.entryOrder.state = 'pending';
+    this.entryOrder.clientID = this.uuid.v4();
+    this.tob = tob;
+    this.refTob = tob;
+    this.orderHandler.newOrder(this.entryOrder);
+  }
 }
 
 Magazine.prototype.updateEntryOrder = function(tob,opposite){
   var upSens = Number(this.tob + this.sens);
   var downSens = Number(this.tob - this.sens);
   this.entryOrder.size = this.clipSize;
-  if(this.remainder < this.clipSize){
+  if(this.remainder < this.entryOrder.size){
     this.entryOrder.size = this.remainder;
   }
 
@@ -37,8 +40,11 @@ Magazine.prototype.updateEntryOrder = function(tob,opposite){
     if(this.comparator(Number(opposite),Number(this.entryOrder.price))){
       this.entryOrder.price = tob;
     }
-    this.entryOrder.state = 'pending';
-    this.orderHandler.modifyOrder(this.entryOrder);
+    if(this.entryOrder.size > Number(0)){
+      console.log('adjEntry','remainder:',this.remainder,'orderSize:',this.entryOrder.size);
+      this.entryOrder.state = 'pending';
+      this.orderHandler.modifyOrder(this.entryOrder);
+    }
   }
 }
 
@@ -90,6 +96,14 @@ Magazine.prototype.updateTOB = function updateTOB(tob,tobQuote){
         this.orderHandler.cancelOrder(this.exitOrder.orderID);
       }
       break;
+    case "neutral":
+      if(this.entryOrder.state == 'open'){
+        this.orderHandler.cancelOrder(this.entryOrder.orderID);
+      }
+      if(this.exitOrder.state == 'open'){
+        this.orderHandler.cancelOrder(this.exitOrder.orderID);
+      }
+      break;
     case "closing":
       if(this.position != 0){
         if(this.exitOrder.state == 'done'){
@@ -103,23 +117,23 @@ Magazine.prototype.updateTOB = function updateTOB(tob,tobQuote){
       }
       break;
     case "on":
-     if(this.position != 0){
+//     if(this.position != 0){
 //should only send exit order if "closing", imbalance will be flipped
-         if(this.entryOrder.state == 'open'){
-           this.updateEntryOrder(TOB,TOBQUOTE);
-         }
+//         if(this.entryOrder.state == 'open'){
+//           this.updateEntryOrder(TOB,TOBQUOTE);
+//         }
 //         if(this.exitOrder.state == 'done'){
 //           this.newExitOrder(TOBQUOTE,TOB);
 //         }else if(this.exitOrder.state == 'open'){
 //           this.updateExitOrder(TOBQUOTE,TOB);
 //         }
-      }else{
+//      }else{
         if(this.entryOrder.state == 'done'){
             this.newEntryOrder(TOB,TOBQUOTE);
         }else if(this.entryOrder.state == 'open'){
           this.updateEntryOrder(TOB,TOBQUOTE);
         }
-      }
+ //     }
       break;
     default:
       console.log("unrecognized state");

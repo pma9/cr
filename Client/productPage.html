@@ -25,7 +25,7 @@
         updateOrder(table,num,order);
       });
       socket.on('fill',function(table,fill){
-        alert(fill.side,fill.price,fill.size);
+//        alert(fill.side,fill.price,fill.size);
         addFill(table,fill);
       });
       socket.on('overviewUpdate',function(row,column,value){

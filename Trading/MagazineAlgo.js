@@ -14,7 +14,7 @@ var MagazineAlgo = function(properties,orderBookMgr,orderHandler,dataHandler,pro
 inherits(MagazineAlgo,SweepAlgo);
 
 MagazineAlgo.prototype.generateLevels = function(){
-  var MktMakeLevel = require('../Trading/MktMakeLevel');
+  var Magazine = require('../Trading/Magazine');
 
   for(var i = 0;i<this.distance.length;i++){
     this.bids.push(new Magazine(i,this.product,"buy",Number(this.distance[i]),Number(this.amount[i]),Number(this.takeProfit[i]),Number(this.stopOut[i]),this.orderHandler,this.state,Number(this.sens[i]),Number(this.stopOutTime[i]),this.dataHandler,this.lessThan,this.minIncrement,this.clipSize));
@@ -39,34 +39,37 @@ MagazineAlgo.prototype.registerListeners = function(){
   }
 
   var checkSize = function(){
+    //long imbalance
     if(self.bidSize - self.askSize > self.sizeDiff){
-      console.log('buy',self.bidSize - self.askSize)
+//      console.log('buy',self.bidSize - self.askSize)
       if(self.pos >=0){
-        if(self.bids[0].levelState == "closing"){
+        if(self.bids[0].levelState == "closing" || self.bids[0].levelState == "neutral"){
           updateState(self.bids,"on"); 
         }
       }
-      if(self.asks[0].levelState == "on"){
+      if(self.asks[0].levelState == "on" || self.asks[0].levelState == "neutral"){
         updateState(self.asks,"closing");
       }
     }else if(self.askSize - self.bidSize >self.sizeDiff){
-      console.log('sell',self.askSize - self.bidSize)
+    //short imbalance
+//      console.log('sell',self.askSize - self.bidSize)
       if(self.pos <=0){
-        if(self.asks[0].levelState == "closing"){
+        if(self.asks[0].levelState == "closing" || self.asks[0].levelState == "neutral"){
           updateState(self.asks,"on");
         }
       }
-      if(self.bids[0].levelState == "on"){
+      if(self.bids[0].levelState == "on" || self.bids[0].levelState == "neutral"){
         updateState(self.bids,"closing");
       }
     }else{
       //should TP enter on neutral or wait for flip?
-      console.log("neutral")
-      if(self.bids[0].levelState == "on"){
-        updateState(self.bids,"closing");
+      //neutral persists due to sizeDiff param
+//      console.log("neutral",self.bidSize - self.askSize)
+      if(self.bids[0].levelState == "on" || self.bids[0].levelState == "closing"){
+        updateState(self.bids,"neutral");
       }
-      if(self.asks[0].levelState == "on"){
-        updateState(self.asks,"closing");
+      if(self.asks[0].levelState == "on" || self.asks[0].levelState == "closing"){
+        updateState(self.asks,"neutral");
       }
     }
   }
