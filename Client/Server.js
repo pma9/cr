@@ -72,7 +72,6 @@ io.on('connection',function(socket){
 
   function registerEmitter(emitter,quoteEntry,quoteExit,fillEntry,fillExit,length){
     emitter.on('entryUpdate',function(index,data){
-console.log('entry update',index);
       io.emit('orderUpdate',quoteEntry,index,data);
     });
 
@@ -81,10 +80,12 @@ console.log('entry update',index);
     });
 
     emitter.on('entryFill',function(data){
+      console.log('entryFill emitted to client',emitter);
       io.emit('fill',fillEntry,data);
     });
 
     emitter.on('exitFill',function(data){
+      console.log('exitFill emitted to client');
       io.emit('fill',fillExit,data);
     });  
   }

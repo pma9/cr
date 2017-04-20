@@ -79,8 +79,8 @@
         var price = Number(fill.price).toFixed(2);
         cell1.innerHTML = fill.side
         cell2.innerHTML = price;
-        cell3.innerHTML = fill.size;
-        cell4.innerHTML = fill.time;
+        cell3.innerHTML = Number(fill.size).toFixed(2);
+        cell4.innerHTML = new Date(fill.time);
       }
       function updateState(state){
         console.log(state);

@@ -54,6 +54,9 @@ Level.prototype.newExitOrder = function(tob,opposite){
     this.exitOrder.price = Number(Number(opposite) + Number(this.minIncrement)).toFixed(2);
   }
   this.exitOrder.size = this.position;
+  if(this.exitOrder.size > this.clipSize){
+    this.exitOrder.size = this.clipSize;
+  }
   this.exitOrder.state = 'pending';
   this.exitOrder.clientID = this.uuid.v1();
   this.orderHandler.newOrder(this.exitOrder);
@@ -72,6 +75,9 @@ Level.prototype.updateExitOrder = function(tob,opposite){
     console.log('exitmodify',downSens,price,upSens);
     this.exitOrder.price = price;
     this.exitOrder.size = this.position;
+    if(this.exitOrder.size > this.clipSize){
+      this.exitOrder.size = this.clipSize;
+    }
     this.exitOrder.state = 'pending';
     this.orderHandler.modifyOrder(this.exitOrder);
   }

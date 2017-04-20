@@ -15,11 +15,16 @@ ProfitManager.prototype.updateShort = function(fill){
 ProfitManager.prototype.getRealized = function(){
   var cashOut = Number(0);
   var cashIn = Number(0);
-  for(var i = 0; i<this.longs.length;i++){
+  var closedCount = this.longs.length;
+  if(this.shorts.length < closedCount){
+    closedCount = this.shorts.length;
+  }
+
+  for(var i = 0; i<closedCount;i++){
     cashOut = cashOut + (Number(this.longs[i].price) * Number(this.longs[i].size));
   }
 
-  for(var i = 0; i<this.shorts.length;i++){
+  for(var i = 0; i<closedCount;i++){
     cashIn = cashIn + (Number(this.shorts[i].price) * Number(this.shorts[i].size));
   }
 
