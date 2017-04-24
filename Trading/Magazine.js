@@ -1,9 +1,10 @@
 var Level = require('../Trading/Level');
 var inherits = require('util').inherits;
 
-var Magazine = function (index,product,action,distance,amount,takeProfit,stopOut,orderHandler,state,sens,stopOutTime,dataHandler,comparator,minIncrement,clipSize){
+var Magazine = function (index,product,action,distance,amount,takeProfit,stopOut,orderHandler,state,sens,stopOutTime,dataHandler,comparator,minIncrement,clipSize,minSpread){
   Level.call(this,index,product,action,distance,amount,takeProfit,stopOut,orderHandler,state,sens,stopOutTime,dataHandler,comparator,minIncrement);
   this.clipSize = clipSize;
+  this.minSpread = minSpread;
 }
 inherits(Magazine,Level);
 
@@ -93,6 +94,7 @@ Magazine.prototype.updateTOB = function updateTOB(tob,tobQuote){
   }
   var TOB = Number(tob);
   var TOBQUOTE = Number(tobQuote);
+  var spread = Number(Math.abs(tob - tobQuote));
   switch(this.levelState){
     case "monitor":
       if(this.entryOrder.state == 'open'){
@@ -135,7 +137,9 @@ Magazine.prototype.updateTOB = function updateTOB(tob,tobQuote){
 //         }
 //      }else{
         if(this.entryOrder.state == 'done'){
+          if(spread > this.minSpread){
             this.newEntryOrder(TOB,TOBQUOTE);
+          }
         }else if(this.entryOrder.state == 'open'){
           this.updateEntryOrder(TOB,TOBQUOTE);
         }

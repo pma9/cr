@@ -9,6 +9,7 @@ var MagazineAlgo = function(properties,orderBookMgr,orderHandler,dataHandler,pro
   this.sizeLevels = properties.get('sizeLevels');
   this.sizeDiff = properties.get('sizeDiff');
   this.clipSize = properties.get('clipSize');
+  this.minSpread = properties.get('minSpread');
 }
 
 inherits(MagazineAlgo,SweepAlgo);
@@ -17,10 +18,10 @@ MagazineAlgo.prototype.generateLevels = function(){
   var Magazine = require('../Trading/Magazine');
 
   for(var i = 0;i<this.distance.length;i++){
-    this.bids.push(new Magazine(i,this.product,"buy",Number(this.distance[i]),Number(this.amount[i]),Number(this.takeProfit[i]),Number(this.stopOut[i]),this.orderHandler,this.state,Number(this.sens[i]),Number(this.stopOutTime[i]),this.dataHandler,this.lessThan,this.minIncrement,this.clipSize));
+    this.bids.push(new Magazine(i,this.product,"buy",Number(this.distance[i]),Number(this.amount[i]),Number(this.takeProfit[i]),Number(this.stopOut[i]),this.orderHandler,this.state,Number(this.sens[i]),Number(this.stopOutTime[i]),this.dataHandler,this.lessThan,this.minIncrement,this.clipSize,this.minSpread));
   }
   for(var i = 0;i<this.distance.length;i++){
-    this.asks.push(new Magazine(i,this.product,"sell",-Number(this.distance[i]),Number(this.amount[i]),Number(this.takeProfit[i]),Number(this.stopOut[i]),this.orderHandler,this.state,Number(this.sens[i]),Number(this.stopOutTime[i]),this.dataHandler,this.greaterThan,this.minIncrement,this.clipSize));
+    this.asks.push(new Magazine(i,this.product,"sell",-Number(this.distance[i]),Number(this.amount[i]),Number(this.takeProfit[i]),Number(this.stopOut[i]),this.orderHandler,this.state,Number(this.sens[i]),Number(this.stopOutTime[i]),this.dataHandler,this.greaterThan,this.minIncrement,this.clipSize,this.minSpread));
   }
 
   this.server.register(this.bids,this.asks);
