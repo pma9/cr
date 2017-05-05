@@ -1,5 +1,4 @@
 var WebSocket = require('ws');
-var request = require('request');
 var inherits = require('util').inherits;
 var EventEmitter = require('events').EventEmitter;
 var WebSocket = require('ws');
@@ -34,9 +33,12 @@ MktDataHandlerGMNI.prototype.run = function run(){
   this.ws.on('message',function(data){
     var sysTime = new Date().toISOString();
     var parsed = JSON.parse(data);
-    for(var i =0;i<parsed.events.length;i++){
-      self.emit('update',parsed.events[i],sysTime);
+    if(parsed.type == 'update'){
+      for(var i =0;i<parsed.events.length;i++){
+        self.emit('update',parsed.events[i],sysTime);
+      }
     }
+    //else heartbeat
   })
 
 }

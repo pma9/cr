@@ -4,7 +4,7 @@ body, html, #container {
 }
 
 #working_div {
-height:50%;
+height:25%;
 width:100%;
 background-color:black;
 margin:auto;
@@ -23,7 +23,6 @@ background-color:white;
 }
 
 #fills_div {
-height:50%;
 width:100%;
 background-color:black;
 margin:auto;
