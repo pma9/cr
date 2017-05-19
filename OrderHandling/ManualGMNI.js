@@ -1,5 +1,5 @@
 var OrderHandler = require('../OrderHandling/OrderHandlerGMNI');
-var orderHandler = new OrderHandler();
+var orderHandler = new OrderHandler('btcusd');
 var msg = {}
 msg.action = process.argv[2];
 msg.product = process.argv[3];

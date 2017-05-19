@@ -4,12 +4,21 @@ var key = properties.get('data.keyGMNI');
 var secret = properties.get('data.secretGMNI');
 var geminiApi = require('gemini-api');
 var gemini = new geminiApi.default({key,secret,sandbox:false});
+var ws = new geminiApi.default.WebsocketClient({key,secret,sandbox:false});
 var inherits = require('util').inherits;
 var EventEmitter = require('events').EventEmitter;
 var uuid = require('uuid');
 
-function OrderHandlerGMNI(){
+function OrderHandlerGMNI(product){
   EventEmitter.call(this);
+  var self = this;
+
+  ws.openOrderSocket(product,function(){
+   ws.addOrderListener('message',function(data){
+      console.log(data);
+    });
+  });
+
 }
 inherits(OrderHandlerGMNI,EventEmitter);
 
