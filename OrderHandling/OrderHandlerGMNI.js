@@ -2,8 +2,8 @@ var PropertiesReader = require('properties-reader');
 var properties = PropertiesReader('/home/jeff/api/apiSettings.ini');
 var key = properties.get('data.keyGMNI');
 var secret = properties.get('data.secretGMNI');
-var Gemini = require('gemini');
-var gemini = new Gemini(key,secret);
+var geminiApi = require('gemini-api');
+var gemini = new geminiApi.default({key,secret,sandbox:false});
 var inherits = require('util').inherits;
 var EventEmitter = require('events').EventEmitter;
 var uuid = require('uuid');
@@ -15,33 +15,40 @@ inherits(OrderHandlerGMNI,EventEmitter);
 
 OrderHandlerGMNI.prototype.newOrder = function(msg){
   var self = this;
-  gemini.new_order(msg.product,msg.size,msg.price,'all',msg.side,'limit',function(err,res,order_id){
-    console.log('response:',res,'orderID:',order_id);
-    self.emit('new_ack',res);
+  var params ={
+    'symbol':msg.product,
+    'amount':msg.size,
+    'price':msg.price,
+    'side':msg.side,
+    'type':'exchange limit'
+  }
+  gemini.newOrder(params).then(function(data){
+    console.log(data);
+    self.emit('new_ack',data);
   });
 }
 
 OrderHandlerGMNI.prototype.cancelOrder = function(msg){
   var self = this;
-  gemini.cancel_order(msg.orderID,function(err,res,order_id){
-    console.log('res:',res,order_id);
-    self.emit('cancel_ack',res);
+  gemini.cancelOrder(msg.orderID).then(function(data){
+    console.log('res:',data);
+    self.emit('cancel_ack',data);
   });
 }
 
 OrderHandlerGMNI.prototype.cancelAll = function(msg){
   var self = this;
-  gemini.cancel_all_orders(function(err,res,data){
-    console.log(res,data);
-    self.emit('cancel_all_ack',res,data);
+  gemini.cancelAllActiveOrders().then(function(data){
+    console.log(data);
+    self.emit('cancel_all_ack',data);
   });
 }
 
-OrderhandlerGMNI.prototype.openOrders = function(msg){
+OrderHandlerGMNI.prototype.openOrders = function(msg){
   var self = this;
-  gemini.active_orders(function(err,res,data){
-    console.log(res,data);
-    self.emit('ack',res,data);
+  gemini.getMyActiveOrders().then(function(data){
+    console.log(data);
+    self.emit('ack',data);
   });
 }
 

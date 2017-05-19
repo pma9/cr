@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/jeffsenk/cr#readme",
   "dependencies": {
-    "express": "^4.14.0"
+    "express": "^4.14.0",
+    "gemini-api": "^2.0.2",
+    "gemini-exchange-api": "^1.0.4"
   }
 }
