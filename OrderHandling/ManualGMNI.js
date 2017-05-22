@@ -4,6 +4,7 @@ var msg = {}
 msg.action = process.argv[2];
 msg.product = process.argv[3];
 var uuid = require('uuid');
+msg.clientID = uuid.v1();
 
 switch(msg.action){
   case "openOrders":
@@ -27,6 +28,16 @@ switch(msg.action){
     break;
   case "cancelAll":
     orderHandler.cancelAll(msg);
+    break;
+  case "test":
+    msg.price = Number(2300);
+    msg.size = Number(0.01);
+    msg.side = 'sell';
+    msg.product = 'btcusd';
+    setTimeout(function(){
+      console.log('timeout reached');
+      orderHandler.newOrder(msg);
+    },5000);
     break;
   default:
     console.log('command not recognized');

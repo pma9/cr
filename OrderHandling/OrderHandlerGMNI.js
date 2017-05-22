@@ -13,10 +13,20 @@ function OrderHandlerGMNI(product){
   EventEmitter.call(this);
   var self = this;
 
-  ws.openOrderSocket(product,function(){
-   ws.addOrderListener('message',function(data){
-      console.log(data);
-    });
+  ws.openOrderSocket('btcusd',function(){
+
+  });
+  
+  ws.addOrderMessageListener(function(data){
+    if(Array.isArray(data) && data.length >0){
+      if(data[0].type == 'accepted'){
+        self.emit('orderUpdate',data[0]);
+        console.log('ws orderUpdate:',data[0]);
+      }else if(data[0].type == 'fill'){
+         self.emit('tradeUpdate',data[0]);
+        console.log('ws tradeUpdate:',data[0]);
+      }    
+    }
   });
 
 }
@@ -29,8 +39,10 @@ OrderHandlerGMNI.prototype.newOrder = function(msg){
     'amount':msg.size,
     'price':msg.price,
     'side':msg.side,
+    'client_order_id':msg.clientID,
     'type':'exchange limit'
   }
+  console.log('set order ID:',msg.clientID);
   gemini.newOrder(params).then(function(data){
     console.log(data);
     self.emit('new_ack',data);
