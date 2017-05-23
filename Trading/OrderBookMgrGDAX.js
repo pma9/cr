@@ -107,7 +107,7 @@ function OrderBookMgrGDAX(reader){
         OrderBookRemove(bids,update);
       }
       if(bids.length>0){
-        self.emit('bidUpdate',bids[0].price,aggregateLevelSize(bids,1));
+        self.emit('bidUpdate',bids[0].price);
       }
     }else if(update.side == 'sell'){
       if(update.type == 'open'){
@@ -116,7 +116,7 @@ function OrderBookMgrGDAX(reader){
         OrderBookRemove(asks,update);
       }
       if(asks.length>0){
-        self.emit('askUpdate',asks[0].price,aggregateLevelSize(asks,1));
+        self.emit('askUpdate',asks[0].price);
       }
     }
   });

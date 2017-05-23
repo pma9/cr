@@ -10,26 +10,26 @@ var ArbLevel = function(index,product,action,distance,amount,takeProfit,stopOut,
 
   this.exitOrderHandler.on('orderUpdate',function(data){
 
-    if(data[1] == 'on'){
+    if(data.type == 'accepted'){
       //initial identification by side and size
-      var amount = self.exitOrder.size;
-      if(self.exitSide == 'sell'){
-        amount = -amount;
-      }
-      if(data[2][3] == amount){
-        self.exitOrder.orderID = data[2][0];
-        self.exitOrder.state = 'open';
-        self.emit('exitUpdate',self.index,self.exitOrder);
-        console.log('incremental exit',data);
-      }
-//    }else if(data[1] == 'ou'){
-//      //subsequent identification by id
-//      if(data[2][0] == self.exitOrder.orderID){
-//        self.exitOrder.price = data[2][6];
-//        self.exitOrder.size = data[2][2];
+//      var amount = self.exitOrder.size;
+//      if(self.exitSide == 'sell'){
+//        amount = -amount;
+//      }
+//      if(data[2][3] == amount){
+//        self.exitOrder.orderID = data[2][0];
+//        self.exitOrder.state = 'open';
 //        self.emit('exitUpdate',self.index,self.exitOrder);
 //        console.log('incremental exit',data);
 //      }
+//    }else if(data[1] == 'ou'){
+//      //subsequent identification by id
+      if(data.client_order_id == self.exitOrder.orderID){
+        self.exitOrder.price = data.price;
+        self.exitOrder.size = data.original_amount;
+        self.emit('exitUpdate',self.index,self.exitOrder);
+        console.log('incremental exit',data);
+      }
 //    }else if(data[1] == 'oc'){
 //      if(data[2][0] == self.exitOrder.orderID){
 //        self.exitOrder.state = 'done';
@@ -40,22 +40,21 @@ var ArbLevel = function(index,product,action,distance,amount,takeProfit,stopOut,
   });
 
   this.exitOrderHandler.on('tradeUpdate',function(data){
-    if(data[2][4] == self.exitOrder.orderID){
-      console.log('orderID',data[2][4]);
-      self.position = self.position - Math.abs(data[2][5]);
-      console.log('pos after exit:',self.position,'fill:',Math.abs(data[2][5]));
+    if(data.client_order_id == self.exitOrder.orderID){
+      console.log('orderID',data.client_order_id);
+      self.position = self.position - Math.abs(data.executed_amount);
+      console.log('pos after exit:',self.position,'fill:',Math.abs(data.executed_amount));
       self.remainder = self.amount - self.position;
       if(self.position == 0){
         self.exitOrder.state = 'done';
       }
       console.log('remainder',self.remainder,'amount',self.amount,'pos',self.position);
-      var side = 'buy';
-      if(data[2][5] < 0){
-        side = 'sell';
-      }
-      var fill = {trade_id:data[2][1],side:side,price:data[2][6],size:Math.abs(data[2][5]),time:data[2][3]};
+      var side = data.side;
+      var fill = {trade_id:data.fill.trade_id,side:side,price:data.price,size:Math.abs(data.executed_amount),time:data.timestamp};
       self.emit('exitFill',fill);
       console.log('fill',data);
+    }else{
+      console.log("ID mismatch:",data.client_order_id,self.exitOrder.orderID);
     }
   });
 

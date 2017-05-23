@@ -10,13 +10,13 @@ function recalc(){
   console.log(bid.length,bid.size,bid.price,ask.price,ask.size,ask.length);
 }
 
-orderBookMgr.on('bidUpdate',function(data,length){
-  bid = {price:data.price,size:data.size,length:length}
+orderBookMgr.on('bidUpdate',function(data){
+  bid.price = data;
   recalc();
 });
 
-orderBookMgr.on('askUpdate',function(data,length){
-  ask = {price:data.price,size:data.size,length:length}
+orderBookMgr.on('askUpdate',function(data){
+  ask.price = data;
   recalc();
 });
 

@@ -15,7 +15,7 @@ var ArbAlgo = function(properties,orderBookMgrQuote,orderBookMgrHedge,orderHandl
 inherits(ArbAlgo,SweepAlgo);
 
 ArbAlgo.prototype.generateLevels = function(){
-  var Level = require('../Trading/ArbLevel');
+  var Level = require('../Trading/GMNIArbLevel');
 
   for(var i = 0;i<this.distance.length;i++){
     this.bids.push(new Level(i,this.product,"buy",-this.distance[i],Number(this.amount[i]),Number(this.takeProfit[i]),Number(this.stopOut[i]),this.orderHandler,this.state,Number(this.sens[i]),Number(this.stopOutTime[i]),this.dataHandler,this.lessThan,this.minIncrement,this.exitOrderHandler,this.exitProduct));

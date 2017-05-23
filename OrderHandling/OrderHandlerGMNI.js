@@ -13,9 +13,7 @@ function OrderHandlerGMNI(product){
   EventEmitter.call(this);
   var self = this;
 
-  ws.openOrderSocket('btcusd',function(){
-
-  });
+  ws.openOrderSocket(product,function(){});
   
   ws.addOrderMessageListener(function(data){
     if(Array.isArray(data) && data.length >0){

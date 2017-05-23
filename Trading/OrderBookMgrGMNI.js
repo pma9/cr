@@ -64,14 +64,14 @@ function OrderBookMgrGMNI(reader){
       }else{
         OrderBookModify(bids,greaterThan,update);
       } 
-      self.emit('bidUpdate',bids[0],bids.length);   
+      self.emit('bidUpdate',bids[0].price);   
     }else if(update.side == 'ask'){
       if(update.reason == 'cancel'){
         OrderBookRemove(asks,update);
       }else{
         OrderBookModify(asks,lessThan,update);
       }
-      self.emit('askUpdate',asks[0],asks.length);
+      self.emit('askUpdate',asks[0].price);
     }
   });
 }
