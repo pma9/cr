@@ -5,14 +5,14 @@ var bids = [];
 var asks = [];
 
 function greaterThan(a,b){
-  if(a>b){
+  if(Number(a)>Number(b)){
     return true;
   }
   return false;
 }
 
 function lessThan(a,b){
-  if(a<b){
+  if(Number(a)<Number(b)){
     return true;
   }
   return false;
@@ -29,10 +29,10 @@ function OrderBookModify(book,comparator,update){
         book.splice(i,0,level);
         match = true;
         break;
-      }else if(level.price == book[i].price){
+      }else if(Number(level.price) == Number(book[i].price)){
         book[i].size = level.size;
         match = true;
-	if(book[i].size <= 0){
+	if(Number(book[i].size) <= Number(0)){
           book.splice(i,1);
         }
         break;
@@ -46,7 +46,7 @@ function OrderBookModify(book,comparator,update){
 
 function OrderBookRemove(book,update){
   for(var i = 0;i<book.length;i++){
-    if(update.price == book[i].price){
+    if(Number(update.price) == Number(book[i].price)){
       book.splice(i,1);
       break;
     }
@@ -59,19 +59,23 @@ function OrderBookMgrGMNI(reader){
     if(update.type == 'trade'){
       //new trade
     }else if(update.side == 'bid'){
-      if(update.reason == 'cancel'){
-        OrderBookRemove(bids,update);
-      }else{
+//      if(update.reason == 'cancel'){
+//        OrderBookRemove(bids,update);
+//      }else{
         OrderBookModify(bids,greaterThan,update);
-      } 
+//      } 
       self.emit('bidUpdate',bids[0].price);   
     }else if(update.side == 'ask'){
-      if(update.reason == 'cancel'){
-        OrderBookRemove(asks,update);
-      }else{
+//      if(update.reason == 'cancel'){
+//        OrderBookRemove(asks,update);
+//      }else{
         OrderBookModify(asks,lessThan,update);
-      }
+//      }
+//      self.emit('askUpdate',asks[0].price);
       self.emit('askUpdate',asks[0].price);
+      if(bids.length >2 && asks.length>2){
+      console.log(bids[2].price,bids[1].price,bids[0].price,bids[0].size,asks[0].size,asks[0].price,asks[1].price,asks[2].price);
+      }
     }
   });
 }
