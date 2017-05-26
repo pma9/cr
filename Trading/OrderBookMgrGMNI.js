@@ -73,9 +73,6 @@ function OrderBookMgrGMNI(reader){
 //      }
 //      self.emit('askUpdate',asks[0].price);
       self.emit('askUpdate',asks[0].price);
-      if(bids.length >2 && asks.length>2){
-      console.log(bids[2].price,bids[1].price,bids[0].price,bids[0].size,asks[0].size,asks[0].price,asks[1].price,asks[2].price);
-      }
     }
   });
 }

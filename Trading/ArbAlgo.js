@@ -90,10 +90,11 @@ console.log('arbAlgo fill:',fill);
       self.profitMgr.updateLong(fill);
       self.server.updatePos(self.pos);
       self.server.updateRealized(self.profitMgr.getRealized());
-      updateState(self.bids,'closing');
-      updateState(self.asks,'closing');
+//      updateState(self.bids,'closing');
+//      updateState(self.asks,'closing');
     });
     this.bids[i].on('exitFill',function(fill){
+      console.log('arbAlgo exitFill:',fill);
       self.pos = self.pos - fill.size;
       self.profitMgr.updateShort(fill);
       self.server.updatePos(self.pos);
@@ -107,8 +108,8 @@ console.log('arbAlgo fill:',fill);
       self.profitMgr.updateShort(fill);
       self.server.updatePos(self.pos);
       self.server.updateRealized(self.profitMgr.getRealized());
-      updateState(self.asks,'closing');
-      updateState(self.bids,'closing');
+//      updateState(self.asks,'closing');
+//      updateState(self.bids,'closing');
     });
     this.asks[i].on('exitFill',function(fill){
       self.pos = self.pos + fill.size;

@@ -11,36 +11,17 @@ var ArbLevel = function(index,product,action,distance,amount,takeProfit,stopOut,
   this.exitOrderHandler.on('orderUpdate',function(data){
 
     if(data.type == 'accepted'){
-      //initial identification by side and size
-//      var amount = self.exitOrder.size;
-//      if(self.exitSide == 'sell'){
-//        amount = -amount;
-//      }
-//      if(data[2][3] == amount){
-//        self.exitOrder.orderID = data[2][0];
-//        self.exitOrder.state = 'open';
-//        self.emit('exitUpdate',self.index,self.exitOrder);
-//        console.log('incremental exit',data);
-//      }
-//    }else if(data[1] == 'ou'){
-//      //subsequent identification by id
-      if(data.client_order_id == self.exitOrder.orderID){
+      if(data.client_order_id == self.exitOrder.clientID){
         self.exitOrder.price = data.price;
         self.exitOrder.size = data.original_amount;
         self.emit('exitUpdate',self.index,self.exitOrder);
         console.log('incremental exit',data);
       }
-//    }else if(data[1] == 'oc'){
-//      if(data[2][0] == self.exitOrder.orderID){
-//        self.exitOrder.state = 'done';
-//        self.emit('exitUpdate',self.index,self.exitOrder);
-//        console.log('incremental exit',data);
-//      }
     }
   });
 
   this.exitOrderHandler.on('tradeUpdate',function(data){
-    if(data.client_order_id == self.exitOrder.orderID){
+    if(data.client_order_id == self.exitOrder.clientID){
       console.log('orderID',data.client_order_id);
       self.position = self.position - Math.abs(data.executed_amount);
       console.log('pos after exit:',self.position,'fill:',Math.abs(data.executed_amount));
@@ -54,7 +35,7 @@ var ArbLevel = function(index,product,action,distance,amount,takeProfit,stopOut,
       self.emit('exitFill',fill);
       console.log('fill',data);
     }else{
-      console.log("ID mismatch:",data.client_order_id,self.exitOrder.orderID);
+      console.log("ID mismatch:",data.client_order_id,self.exitOrder.clientID,self.entryOrder.clientID);
     }
   });
 
